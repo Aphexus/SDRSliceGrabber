@@ -1,0 +1,6 @@
+CREATE TABLE FILE_UPLOADS (
+  id INTEGER NOT NULL AUTO_INCREMENT,
+  file_name VARCHAR(50),
+  upload_timestamp TIMESTAMP,
+  PRIMARY KEY (id)
+);
