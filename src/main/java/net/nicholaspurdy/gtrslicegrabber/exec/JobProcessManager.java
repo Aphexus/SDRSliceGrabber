@@ -25,7 +25,7 @@ public class JobProcessManager {
 
     private static final Logger log = LoggerFactory.getLogger(JobProcessManager.class);
 
-    private static final int THREAD_POOL_SIZE = 1;
+    private static final int THREAD_POOL_SIZE = 3;
 
     private final ApplicationContext context;
     private final JobLauncher jobLauncher;
@@ -62,20 +62,29 @@ public class JobProcessManager {
     private Runnable generateRunnable(final JobParameters params, CountDownLatch latch) {
 
         return () -> {
-            Job job = context.getBean(Job.class);
 
             try {
-                log.info("Launching job for: " + params.getString("assetClassParam") + " " + params.getString("dateStrParam"));
+                log.info("Building & launching job for: " + params.getString("assetClassParam")
+                        + " " + params.getString("dateStrParam"));
+                Job job = context.getBean(Job.class);
                 jobLauncher.run(job, params);
-            } catch (JobExecutionAlreadyRunningException | JobInstanceAlreadyCompleteException e) {
-                log.warn("You accidentally tried to run the same job parameters twice.", e);
-            } catch (JobRestartException e) {
-                log.warn("Job cannot be restarted.", e);
-            } catch (JobParametersInvalidException e) {
-                log.warn("Exception due to improper job parameters.", e);
             }
-
-            latch.countDown();
+            catch (JobExecutionAlreadyRunningException | JobInstanceAlreadyCompleteException e) {
+                log.error("You accidentally tried to run the same job parameters twice.", e);
+            }
+            catch (JobRestartException e) {
+                log.error("Job cannot be restarted.", e);
+            }
+            catch (JobParametersInvalidException e) {
+                log.error("Exception due to improper job parameters.", e);
+            }
+            catch (Exception e) {
+                log.error("Unspecified exception occurred for job: "
+                        + params.getString("assetClassParam") + " " + params.getString("dateStrParam"), e);
+            }
+            finally {
+                latch.countDown();
+            }
 
         };
 
