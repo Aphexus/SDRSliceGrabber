@@ -34,24 +34,28 @@ public class App implements RequestHandler<ScheduledEvent, String> {
      */
     public static void main(String[] args) {
 
-
-        // example args: batch FX 2018-03-20 2018-04-05 CO 2018-03-20 2018-07-12
         // ("batch" assetClass startDate endDate repeat)
-        args = new String[] {"batch", "RATES", "2019_03_20", "2019_03_26", "FOREX", "2019_03_20", "2019_03_26", "CREDITS", "2019_03_20", "2019_03_26",
-                                        "EQUITIES", "2019_03_20", "2019_03_26", "COMMODITIES", "2019_03_20", "2019_03_26"};
+        args = new String[] {
+                "RATES", "2019_03_20", "2019_03_26",
+                "FOREX", "2019_03_20", "2019_03_26",
+                "CREDITS", "2019_03_20", "2019_03_26",
+                "EQUITIES", "2019_03_20", "2019_03_26",
+                "COMMODITIES", "2019_03_20", "2019_03_26"
+        };
+        args = new String[] { "RATES", "2019_03_20", "2019_03_20"};
         SpringApplication.run(App.class, args);
 
         //for testing purposes only, comment this line out before committing
-        //test();
+        //testLambda();
 
     }
 
     /**
      * This only exists so that I can run the AWS lambda code locally until I learn how to use the docker runtime.
      */
-    private static void test() {
+    private static void testLambda() {
         Map<String, Object> detail = new HashMap<>();
-        detail.put("assetClasses", List.of(AssetClass.CREDITS));
+        detail.put("assetClasses", Arrays.asList(AssetClass.values()));
 
         ScheduledEvent scheduledEvent = new ScheduledEvent();
         scheduledEvent.setDetail(detail);
@@ -80,7 +84,7 @@ public class App implements RequestHandler<ScheduledEvent, String> {
      *     "{{ExampleRule}}"
      *   ],
      *   "detail": {
-     *     "assetClasses": ["FOREX","IR","CO"]
+     *     "assetClasses": ["FOREX","RATES","CREDITS"]
      *   }
      * }
      *
@@ -98,7 +102,6 @@ public class App implements RequestHandler<ScheduledEvent, String> {
 
         // build args
         StringBuilder cmd = new StringBuilder();
-        cmd.append("lambda ");
 
         List<AssetClass> assetClasses =
                 (List<AssetClass>) event.getDetail().getOrDefault("assetClasses", Arrays.asList(AssetClass.values()));
@@ -106,9 +109,12 @@ public class App implements RequestHandler<ScheduledEvent, String> {
         for(AssetClass assetClass : assetClasses) {
             cmd.append(assetClass);
             cmd.append(" ");
+            cmd.append(DateUtils.SDF.format(event.getTime().toDate()));
+            cmd.append(" ");
+            cmd.append(DateUtils.SDF.format(event.getTime().toDate()));
+            cmd.append(" ");
         }
 
-        cmd.append(DateUtils.SDF.format(event.getTime().toDate()));
 
         SpringApplication.run(App.class, cmd.toString().split(" "));
 

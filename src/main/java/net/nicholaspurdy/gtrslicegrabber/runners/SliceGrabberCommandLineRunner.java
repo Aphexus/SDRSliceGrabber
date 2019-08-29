@@ -1,6 +1,7 @@
 package net.nicholaspurdy.gtrslicegrabber.runners;
 
 import net.nicholaspurdy.gtrslicegrabber.exec.JobProcessManager;
+import net.nicholaspurdy.gtrslicegrabber.utils.FormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParameters;
@@ -39,7 +40,7 @@ public final class SliceGrabberCommandLineRunner implements CommandLineRunner {
 
         log.info("Executing command: " + String.join(" ", args));
 
-        RunnerUtils.validateArgs(args);
+        if (!RunnerUtils.validateArgs(args)) throw new IllegalArgumentException("Args are invalid.");
 
         List<JobParameters> jobParameters = RunnerUtils.generateParams(args);
 
@@ -52,7 +53,7 @@ public final class SliceGrabberCommandLineRunner implements CommandLineRunner {
 
         latch.await();
 
-        log.info("Main thread is done waiting. Entire program took " + Duration.between(instant, Instant.now()).getSeconds() + " Seconds.");
+        log.info("Main thread is done waiting. Entire program took " + FormatUtils.getTimeStr(instant, Instant.now()));
 
     }
 

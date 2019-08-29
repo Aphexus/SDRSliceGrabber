@@ -3,69 +3,61 @@ package net.nicholaspurdy.gtrslicegrabber.runners;
 import org.junit.Test;
 import org.springframework.batch.core.JobParameters;
 
+import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class TestRunnerUtils {
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy_MM_dd");
+    private static final LocalDate today = LocalDate.now(Clock.systemUTC());
+
+
     @Test
     public void testValidateArgs() {
-        String validArgs[] = {"batch", "FOREX", "2016_02_02", "2016_02_04"};
-        String invalidArgs[] = {"lambda FOREX 2016_04_05"};
-
-        RunnerUtils.validateArgs(validArgs); // nothing should happen
-
-        try {
-            RunnerUtils.validateArgs(invalidArgs);
-        }
-        catch (IllegalArgumentException e) {
-            assertTrue("Args are invalid.".equals(e.getMessage()));
-        }
-    }
-
-    /**
-     * The following two tests test the same method, 'generateParams(String... args)', but with different parameters.
-     */
-    @Test
-    public void testLambdaGenerateParams() {
-
-        // testing single asset class args
-        String singleAssetClass[] = {"lambda", "RATES", "2016_04_05"};
-
-        List<JobParameters> jobParameters = RunnerUtils.generateParams(singleAssetClass);
-
-        assertEquals(1, jobParameters.size());
-        assertTrue("2016_04_05".equals(jobParameters.get(0).getString("dateStrParam")));
-        assertTrue("RATES".equals(jobParameters.get(0).getString("assetClassParam")));
+        final String[] nullCmd = null, emptyCmd = {},
+                badAssetClass = { "COLLATERAL", "2013_02_23" },
+                missingDate = { "EQUITIES", "2014_01_09" },
+                badDateFormat = { "FOREX", "2014_04_20", "2014-05-09" },
+                tomorrowsDate = { "RATES", "2015_05_06", dateFormat.format(Date.valueOf(today.plusDays(1))) },
+                invalidRange = { "RATES", "2014-03-03", "2014-03-01" },
+                incompleteStr = { "RATES", "2015_04_03", "2015_04_06", "EQUITIES", "2016_04_05" },
+                extraArg = { "RATES", "2015_04_03", "2015_04_06", "FOREX", "2015_04_03", "2015_04_06",
+                        "COMMODITIES", "2015_04_03", "2015_04_06", "EQUITIES", "2015_04_03", "2015_04_06",
+                        "CREDITS", "2015_04_03", "2015_04_06", "EXTRA" },
+                valid = { "RATES", "2015_04_03", "2015_04_06", "FOREX", "2015_04_03", "2015_04_06",
+                        "COMMODITIES", "2015_04_03", "2015_04_06", "EQUITIES", "2015_04_03", "2015_04_06",
+                        "CREDITS", "2015_04_03", "2015_04_06" };
 
 
-        // testing multi asset class args
-        String multiAssetClass[] = {"lambda", "FOREX", "RATES", "2016_04_05"};
-
-        jobParameters = RunnerUtils.generateParams(multiAssetClass);
-
-        assertEquals(2, jobParameters.size());
-        assertTrue("2016_04_05".equals(jobParameters.get(0).getString("dateStrParam")));
-        assertTrue("FOREX".equals(jobParameters.get(0).getString("assetClassParam")));
-
-        assertTrue("2016_04_05".equals(jobParameters.get(1).getString("dateStrParam")));
-        assertTrue("RATES".equals(jobParameters.get(1).getString("assetClassParam")));
+        assertFalse(RunnerUtils.validateArgs(nullCmd));
+        assertFalse(RunnerUtils.validateArgs(emptyCmd));
+        assertFalse(RunnerUtils.validateArgs(badAssetClass));
+        assertFalse(RunnerUtils.validateArgs(missingDate));
+        assertFalse(RunnerUtils.validateArgs(badDateFormat));
+        assertFalse(RunnerUtils.validateArgs(tomorrowsDate));
+        assertFalse(RunnerUtils.validateArgs(invalidRange));
+        assertFalse(RunnerUtils.validateArgs(incompleteStr));
+        assertFalse(RunnerUtils.validateArgs(extraArg));
+        assertTrue(RunnerUtils.validateArgs(valid));
 
     }
 
     @Test
-    public void testBatchGenerateParams() {
+    public void testGenerateParams() {
 
         List<JobParameters> jobParameters;
 
-        String singleAssetClassSingleDate[] = {"batch", "RATES", "2016_04_05", "2016_04_05"};
-        String multiAssetClassSingleDates[] = {"batch", "RATES", "2016_04_05", "2016_04_05",
+        String singleAssetClassSingleDate[] = {"RATES", "2016_04_05", "2016_04_05"};
+        String multiAssetClassSingleDates[] = {"RATES", "2016_04_05", "2016_04_05",
                 "EQUITIES", "2016_04_05", "2016_04_05"};
 
-        String singleAssetClassRangeDate[] = {"batch", "RATES", "2016_04_05", "2016_04_07"};
-        String multiAssetClassRangeDate[] = {"batch", "RATES", "2016_04_05", "2016_04_06",
+        String singleAssetClassRangeDate[] = {"RATES", "2016_04_05", "2016_04_07"};
+        String multiAssetClassRangeDate[] = {"RATES", "2016_04_05", "2016_04_06",
                 "EQUITIES", "2016_04_05", "2016_04_07"};
 
         jobParameters = RunnerUtils.generateParams(singleAssetClassSingleDate);
