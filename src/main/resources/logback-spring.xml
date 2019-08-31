@@ -25,7 +25,7 @@
         </encoder>
     </appender>
 
-    <logger name="net.nicholaspurdy.gtrslicegrabber" level="DEBUG" additivity="false">
+    <logger name="net.nicholaspurdy.gtrslicegrabber" level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>
 

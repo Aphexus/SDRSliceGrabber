@@ -57,7 +57,7 @@ public class FileService {
         fis.close();
 
         if (zipShouldBeDeleted)
-            zipFile.delete();
+            if (!zipFile.delete()) log.warn("Could not delete " + zipFile.getName());
 
 
 

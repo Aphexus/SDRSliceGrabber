@@ -59,7 +59,7 @@ public class JobProcessManager {
 
     }
 
-    private Runnable generateRunnable(final JobParameters params, CountDownLatch latch) {
+    private Runnable generateRunnable(JobParameters params, CountDownLatch latch) {
 
         return () -> {
 

@@ -56,7 +56,13 @@ public class SliceGrabberTasklet implements Tasklet {
 
             fileService.copyURLtoFile(new URL(urlStr), zipFile);
             log.info("Zip file size for " + assetClass + " " + dateStr + ": " + getSize(zipFile));
-            s3Uploader.upload(zipFile);
+
+            try {
+                s3Uploader.upload(zipFile);
+            }
+            catch (SdkException e) {
+                log.warn("Exception occurred while trying to upload " + zipFile.getName(), e);
+            }
 
             int id = sliceFileDao.insertFileMetadata(assetClass, dateStr, zipFile.getName());
             chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().put("fileId", id);
@@ -69,10 +75,6 @@ public class SliceGrabberTasklet implements Tasklet {
         catch (IOException e) {
             log.error("Exception occurred while trying to download " + urlStr, e);
             throw new UnexpectedJobExecutionException("IOException occurred.", e);
-        }
-        catch (SdkException e) {
-            log.error("Exception occurred while trying to upload " + urlStr, e);
-            throw new UnexpectedJobExecutionException("SdkException occurred.", e);
         }
         catch (DataAccessException e) {
             log.error("Exception occurred while trying to update DB.");

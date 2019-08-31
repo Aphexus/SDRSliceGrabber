@@ -1,5 +1,6 @@
 package net.nicholaspurdy.gtrslicegrabber.job;
 
+import net.nicholaspurdy.gtrslicegrabber.tasks.CsvFileCleanUpTasklet;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
@@ -56,7 +57,7 @@ public class JobConfig {
 
     @JobScope
     @Bean
-    public JdbcBatchItemWriter<SliceFileItem> writer(
+    public JdbcBatchItemWriter<SliceFileItem> getWriter(
             @Autowired DataSource dataSource,
             @Value("#{jobExecutionContext['fileId']}") Long fileId,
             @Value("#{jobParameters['assetClassParam']}") String assetClass) {
@@ -84,22 +85,38 @@ public class JobConfig {
     @Qualifier("step2")
     public Step readFileAndInsert(
             @Autowired FlatFileItemReader<SliceFileItem> itemReader,
+            @Autowired ActionFieldItemProcessor itemProcessor,
             @Autowired JdbcBatchItemWriter<SliceFileItem> itemWriter) {
 
         return this.stepBuilderFactory.get("readFileAndInsert")
                 .<SliceFileItem,SliceFileItem>chunk(2000)
                 .reader(itemReader)
+                //.processor(itemProcessor)
                 .writer(itemWriter)
                 .listener((StepExecutionListener) new SliceGrabberStepListenerSupport())
                 .build();
     }
 
     @Bean
-    public Job getJob(@Qualifier("step1") Step step1, @Qualifier("step2") Step step2) {
+    @Qualifier("step3")
+    public Step deleteCsvFile() {
+        return this.stepBuilderFactory.get("deleteCsvFile")
+                .tasklet(new CsvFileCleanUpTasklet())
+                .listener(new BasicStepExecutionListener())
+                .exceptionHandler(new TaskletExceptionHandler())
+                .build();
+    }
+
+    @Bean
+    public Job getJob(
+            @Qualifier("step1") Step step1,
+            @Qualifier("step2") Step step2,
+            @Qualifier("step3") Step step3) {
 
         return this.jobBuilderFactory.get("sliceFileGrabberJob")
                 .start(step1)
                 .next(step2)
+                .next(step3)
                 .listener(new SliceGrabberJobListener())
                 .build();
     }

@@ -19,13 +19,18 @@ public class SliceGrabberJobListener implements JobExecutionListener {
 
     @Override
     public void afterJob(JobExecution jobExecution) {
-        log.info("Job for: " + jobExecution.getJobParameters().getString("assetClassParam")
-                + " " + jobExecution.getJobParameters().getString("dateStrParam") + " finished with status: " +
-                jobExecution.getStatus() + ". Duration: " + FormatUtils.getTimeStr(jobExecution));
 
-        if (jobExecution.getStatus() == BatchStatus.FAILED) {
-            log.info("Run these queries to clean up the database before retrying this job: " +
-                    "DELETE FROM ENTRIES WHERE FILE_ID = " + jobExecution.getExecutionContext().get("fileId") +
+        String endMsg = "Job for: " + jobExecution.getJobParameters().getString("assetClassParam")
+                + " " + jobExecution.getJobParameters().getString("dateStrParam") + " finished with status: " +
+                jobExecution.getStatus() + ". Duration: " + FormatUtils.getTimeStr(jobExecution);
+
+        if(jobExecution.getStatus() == BatchStatus.COMPLETED) log.info(endMsg);
+
+        else {
+            log.error(endMsg);
+            log.error("Run these queries to clean up the database before retrying this job: " +
+                    "DELETE FROM " + jobExecution.getJobParameters().getString("assetClassParam") +
+                    " WHERE FILE_ID = " + jobExecution.getExecutionContext().get("fileId") +
                     "; DELETE FROM FILES WHERE FILE_ID = " + jobExecution.getExecutionContext().get("fileId") + ";");
         }
     }
