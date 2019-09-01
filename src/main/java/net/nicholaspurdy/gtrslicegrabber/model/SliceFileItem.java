@@ -11,6 +11,7 @@ public class SliceFileItem {
 
     private Long CANCELED_BY;
     private Long CORRECTED_BY;
+    private Boolean PROCESSED;
 
     private Long DISSEMINATION_ID;
     private Long ORIGINAL_DISSEMINATION_ID;

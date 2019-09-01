@@ -36,13 +36,13 @@ public class App implements RequestHandler<ScheduledEvent, String> {
 
         // ("batch" assetClass startDate endDate repeat)
         args = new String[] {
-                "RATES", "2019_01_01", "2019_03_26",
-                "FOREX", "2019_01_01", "2019_03_26",
-                "CREDITS", "2019_01_01", "2019_03_26",
-                "EQUITIES", "2019_01_01", "2019_03_26",
-                "COMMODITIES", "2019_01_01", "2019_03_26"
+                //"RATES", "2019_01_01", "2019_03_26",
+                //"FOREX", "2019_01_01", "2019_03_26",
+                "CREDITS", "2019_01_08", "2019_06_08"
+                //"EQUITIES", "2019_01_01", "2019_03_26",
+                //"COMMODITIES", "2019_01_01", "2019_03_26"
         };
-        args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};
+        //args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};
         SpringApplication.run(App.class, args);
 
         //for testing purposes only, comment this line out before committing

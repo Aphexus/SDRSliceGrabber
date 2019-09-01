@@ -50,6 +50,11 @@ class SliceGrabberStepListenerSupport extends StepListenerSupport<SliceFileItem,
     }
 
     @Override
+    public void onProcessError(SliceFileItem item, Exception e) {
+        log.error("Exception occurred while trying to process item: " + item, e);
+    }
+
+    @Override
     public void onWriteError(Exception ex, List<? extends SliceFileItem> items) {
         log.error("Exception occurred while trying to write to DB.", ex);
     }

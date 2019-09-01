@@ -91,7 +91,7 @@ public class JobConfig {
         return this.stepBuilderFactory.get("readFileAndInsert")
                 .<SliceFileItem,SliceFileItem>chunk(2000)
                 .reader(itemReader)
-                //.processor(itemProcessor)
+                .processor(itemProcessor)
                 .writer(itemWriter)
                 .listener((StepExecutionListener) new SliceGrabberStepListenerSupport())
                 .build();

@@ -1,0 +1,45 @@
+delete from FOREX;
+delete from RATES;
+delete from COMMODITIES;
+delete from EQUITIES;
+delete from CREDITS;
+
+delete from FILES;
+
+drop table FOREX;
+drop table RATES;
+drop table COMMODITIES;
+drop table EQUITIES;
+drop table CREDITS;
+drop table FILES;
+
+select * from FILES;
+select count(*) from CREDITS;
+
+-- check if a message is trying to cancel a message that doesn't exist
+-- (this will return rows during testing since the data is incomplete)
+select DISSEMINATION_ID, ACTION, ORIGINAL_DISSEMINATION_ID from CREDITS where action = 'CANCEL'
+AND ORIGINAL_DISSEMINATION_ID NOT IN (SELECT DISSEMINATION_ID FROM CREDITS);
+
+-- check if a message is trying to cancel a message with a dissemination id greater than its own
+-- this has yet to return any rows but it might be possible
+select DISSEMINATION_ID, ACTION, ORIGINAL_DISSEMINATION_ID from CREDITS
+where ORIGINAL_DISSEMINATION_ID > DISSEMINATION_ID;
+
+
+-- check for messages that cancel a cancel, etc.
+-- cancel/correct -> cancel = no, cancel/correct -> correct = yes
+select DISSEMINATION_ID, ACTION, ORIGINAL_DISSEMINATION_ID from CREDITS where ACTION = 'CANCEL'
+AND ORIGINAL_DISSEMINATION_ID in (
+    select DISSEMINATION_ID from CREDITS where ACTION = 'CORRECT'
+);
+
+
+-- check for transitive cancellations/corrections (tip: confirmed possible
+select DISSEMINATION_ID, ACTION, ORIGINAL_DISSEMINATION_ID from CREDITS
+where ACTION = 'CANCEL'
+AND ORIGINAL_DISSEMINATION_ID in (
+    select DISSEMINATION_ID from CREDITS where ACTION = 'CORRECT' and ORIGINAL_DISSEMINATION_ID in (
+        select DISSEMINATION_ID from CREDITS where ACTION = 'CORRECT'
+    )
+);
