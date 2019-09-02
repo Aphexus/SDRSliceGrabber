@@ -85,13 +85,11 @@ public class JobConfig {
     @Qualifier("step2")
     public Step readFileAndInsert(
             @Autowired FlatFileItemReader<SliceFileItem> itemReader,
-            @Autowired ActionFieldItemProcessor itemProcessor,
             @Autowired JdbcBatchItemWriter<SliceFileItem> itemWriter) {
 
         return this.stepBuilderFactory.get("readFileAndInsert")
                 .<SliceFileItem,SliceFileItem>chunk(2000)
                 .reader(itemReader)
-                .processor(itemProcessor)
                 .writer(itemWriter)
                 .listener((StepExecutionListener) new SliceGrabberStepListenerSupport())
                 .build();
