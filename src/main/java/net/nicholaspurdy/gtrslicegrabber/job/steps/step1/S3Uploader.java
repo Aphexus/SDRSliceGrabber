@@ -1,4 +1,4 @@
-package net.nicholaspurdy.gtrslicegrabber.services;
+package net.nicholaspurdy.gtrslicegrabber.job.steps.step1;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

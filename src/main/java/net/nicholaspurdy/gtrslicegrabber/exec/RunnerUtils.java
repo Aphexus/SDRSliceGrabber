@@ -1,4 +1,4 @@
-package net.nicholaspurdy.gtrslicegrabber.runners;
+package net.nicholaspurdy.gtrslicegrabber.exec;
 
 import net.nicholaspurdy.gtrslicegrabber.model.AssetClass;
 import org.slf4j.Logger;
@@ -10,7 +10,6 @@ import net.nicholaspurdy.gtrslicegrabber.utils.DateUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;

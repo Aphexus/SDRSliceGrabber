@@ -1,8 +1,5 @@
-package net.nicholaspurdy.gtrslicegrabber.tasks;
+package net.nicholaspurdy.gtrslicegrabber.job.steps.step1;
 
-import net.nicholaspurdy.gtrslicegrabber.dao.SliceFileDao;
-import net.nicholaspurdy.gtrslicegrabber.services.FileService;
-import net.nicholaspurdy.gtrslicegrabber.services.S3Uploader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParameters;

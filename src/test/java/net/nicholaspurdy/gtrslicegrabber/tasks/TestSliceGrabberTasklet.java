@@ -1,8 +1,9 @@
 package net.nicholaspurdy.gtrslicegrabber.tasks;
 
-import net.nicholaspurdy.gtrslicegrabber.dao.SliceFileDao;
-import net.nicholaspurdy.gtrslicegrabber.services.FileService;
-import net.nicholaspurdy.gtrslicegrabber.services.S3Uploader;
+import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.SliceFileDao;
+import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.FileService;
+import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Uploader;
+import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.SliceGrabberTasklet;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;

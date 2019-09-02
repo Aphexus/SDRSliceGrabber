@@ -2,7 +2,8 @@ package net.nicholaspurdy.gtrslicegrabber.services;
 
 import io.findify.s3mock.S3Mock;
 
-import net.nicholaspurdy.gtrslicegrabber.config.S3Config;
+import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Config;
+import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Uploader;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

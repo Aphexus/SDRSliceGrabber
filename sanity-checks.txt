@@ -43,3 +43,9 @@ AND ORIGINAL_DISSEMINATION_ID in (
         select DISSEMINATION_ID from CREDITS where ACTION = 'CORRECT'
     )
 );
+
+select distinct ASSET_CLASS from FOREX;
+
+-- see if multiple corrects/cancels can apply to the same message (yet to be tested)
+select ORIGINAL_DISSEMINATION_ID, count(ORIGINAL_DISSEMINATION_ID) from CREDITS
+where ACTION = 'CORRECT' GROUP BY ORIGINAL_DISSEMINATION_ID;

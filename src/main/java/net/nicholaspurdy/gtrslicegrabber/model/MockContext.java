@@ -1,10 +1,13 @@
-package net.nicholaspurdy.gtrslicegrabber.mock;
+package net.nicholaspurdy.gtrslicegrabber.model;
 
 import com.amazonaws.services.lambda.runtime.ClientContext;
 import com.amazonaws.services.lambda.runtime.CognitoIdentity;
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.LambdaLogger;
 
+/**
+ * No-op implementation of AWS Lambda's Context interface
+ */
 public class MockContext implements Context {
 
     @Override

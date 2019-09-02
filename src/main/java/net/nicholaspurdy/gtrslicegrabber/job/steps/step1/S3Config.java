@@ -1,4 +1,4 @@
-package net.nicholaspurdy.gtrslicegrabber.config;
+package net.nicholaspurdy.gtrslicegrabber.job.steps.step1;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

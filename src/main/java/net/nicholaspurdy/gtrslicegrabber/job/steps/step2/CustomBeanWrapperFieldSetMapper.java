@@ -1,4 +1,4 @@
-package net.nicholaspurdy.gtrslicegrabber.job;
+package net.nicholaspurdy.gtrslicegrabber.job.steps.step2;
 
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.util.StringUtils;
@@ -12,11 +12,11 @@ import java.time.format.DateTimeFormatter;
 
 class CustomBeanWrapperFieldSetMapper<T> extends BeanWrapperFieldSetMapper<T> {
 
+    private static final DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter localDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
     @Override
     protected void initBinder(DataBinder binder) {
-
-        DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        DateTimeFormatter localDateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
         binder.registerCustomEditor(LocalDate.class, new PropertyEditorSupport() {
             @Override

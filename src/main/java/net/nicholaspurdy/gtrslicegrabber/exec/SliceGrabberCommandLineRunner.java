@@ -1,6 +1,5 @@
-package net.nicholaspurdy.gtrslicegrabber.runners;
+package net.nicholaspurdy.gtrslicegrabber.exec;
 
-import net.nicholaspurdy.gtrslicegrabber.exec.JobProcessManager;
 import net.nicholaspurdy.gtrslicegrabber.utils.FormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;

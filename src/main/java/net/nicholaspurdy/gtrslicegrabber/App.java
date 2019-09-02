@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import net.nicholaspurdy.gtrslicegrabber.mock.MockContext;
+import net.nicholaspurdy.gtrslicegrabber.model.MockContext;
 import net.nicholaspurdy.gtrslicegrabber.model.AssetClass;
 import net.nicholaspurdy.gtrslicegrabber.utils.DateUtils;
 
@@ -38,8 +38,8 @@ public class App implements RequestHandler<ScheduledEvent, String> {
         args = new String[] {
                 //"RATES", "2019_01_01", "2019_03_26",
                 //"FOREX", "2019_01_01", "2019_03_26",
-                "CREDITS", "2019_01_08", "2019_06_08"
-                //"EQUITIES", "2019_01_01", "2019_03_26",
+                ///"CREDITS", "2019_01_08", "2019_02_08"
+                "EQUITIES", "2019_01_01", "2019_04_01",
                 //"COMMODITIES", "2019_01_01", "2019_03_26"
         };
         //args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};

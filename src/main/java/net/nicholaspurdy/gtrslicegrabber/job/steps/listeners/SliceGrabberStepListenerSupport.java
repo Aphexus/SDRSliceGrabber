@@ -1,4 +1,4 @@
-package net.nicholaspurdy.gtrslicegrabber.job;
+package net.nicholaspurdy.gtrslicegrabber.job.steps.listeners;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,7 @@ import net.nicholaspurdy.gtrslicegrabber.model.SliceFileItem;
 
 import java.util.List;
 
-class SliceGrabberStepListenerSupport extends StepListenerSupport<SliceFileItem,SliceFileItem> {
+public class SliceGrabberStepListenerSupport extends StepListenerSupport<SliceFileItem,SliceFileItem> {
 
     private static final Logger log = LoggerFactory.getLogger(SliceGrabberStepListenerSupport.class);
 
