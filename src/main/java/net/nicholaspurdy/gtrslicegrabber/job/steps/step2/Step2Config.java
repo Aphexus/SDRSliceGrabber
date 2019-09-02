@@ -31,6 +31,7 @@ public class Step2Config {
         return this.stepBuilderFactory.get("readFileAndInsert")
                 .<SliceFileItem,SliceFileItem>chunk(2000)
                 .reader(itemReader)
+                .processor(new SanityCheckItemProcessor())
                 .writer(itemWriter)
                 .listener((StepExecutionListener) new SliceGrabberStepListenerSupport())
                 .build();

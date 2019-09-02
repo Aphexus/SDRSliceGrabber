@@ -2,6 +2,7 @@ package net.nicholaspurdy.gtrslicegrabber.utils;
 
 import org.springframework.batch.core.JobExecution;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -34,6 +35,19 @@ public final class FormatUtils {
         else {
             return builder.append(seconds).append(" SECONDS.").toString();
         }
+
+    }
+
+
+    public static String getSize(File file) {
+
+        long kb = file.length() / 1024;
+
+        if(kb >= 1024) {
+            return (kb / 1024) + " MB";
+        }
+
+        return kb + " KB";
 
     }
 

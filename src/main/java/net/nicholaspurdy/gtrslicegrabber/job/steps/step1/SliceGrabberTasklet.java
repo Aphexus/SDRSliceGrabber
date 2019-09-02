@@ -1,5 +1,6 @@
 package net.nicholaspurdy.gtrslicegrabber.job.steps.step1;
 
+import net.nicholaspurdy.gtrslicegrabber.utils.FormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParameters;
@@ -52,7 +53,7 @@ public class SliceGrabberTasklet implements Tasklet {
         try {
 
             fileService.copyURLtoFile(new URL(urlStr), zipFile);
-            log.info("Zip file size for " + assetClass + " " + dateStr + ": " + getSize(zipFile));
+            log.info("Zip file size for " + assetClass + " " + dateStr + ": " + FormatUtils.getSize(zipFile));
 
             try {
                 s3Uploader.upload(zipFile);
@@ -65,7 +66,7 @@ public class SliceGrabberTasklet implements Tasklet {
             chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().put("fileId", id);
 
             File file = fileService.unzip(zipFile, true);
-            log.info("CSV file size for " + assetClass + " " + dateStr + ": " + getSize(file));
+            log.info("CSV file size for " + assetClass + " " + dateStr + ": " + FormatUtils.getSize(file));
             chunkContext.getStepContext().getStepExecution().getJobExecution().getExecutionContext().put("file", file);
 
         }
@@ -79,19 +80,6 @@ public class SliceGrabberTasklet implements Tasklet {
         }
 
         return RepeatStatus.FINISHED;
-    }
-
-
-    private String getSize(File file) {
-
-        long kb = file.length() / 1024;
-
-        if(kb >= 1024) {
-            return (kb / 1024) + " MB";
-        }
-
-        return kb + " KB";
-
     }
 
 }
