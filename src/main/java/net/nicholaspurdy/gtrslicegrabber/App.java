@@ -37,9 +37,9 @@ public class App implements RequestHandler<ScheduledEvent, String> {
         // ("batch" assetClass startDate endDate repeat)
         args = new String[] {
                 //"RATES", "2019_01_01", "2019_03_26",
-                //"FOREX", "2019_01_01", "2019_03_26",
-                ///"CREDITS", "2019_01_08", "2019_02_08"
-                "EQUITIES", "2019_01_01", "2019_04_01",
+                //"FOREX", "2019_01_01", "2019_02_01",
+                "CREDITS", "2019_01_08", "2019_02_08"
+                //"EQUITIES", "2019_01_01", "2019_04_01",
                 //"COMMODITIES", "2019_01_01", "2019_03_26"
         };
         //args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};

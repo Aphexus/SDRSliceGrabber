@@ -9,6 +9,7 @@ import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,10 +17,13 @@ import org.springframework.context.annotation.Configuration;
 public class Step2Config {
 
     private final StepBuilderFactory stepBuilderFactory;
+    private final Integer chunkSize;
 
     @Autowired
-    public Step2Config(StepBuilderFactory stepBuilderFactory) {
+    public Step2Config(StepBuilderFactory stepBuilderFactory,
+                       @Value("${slicegrabber.itemwriter.chunkSize}") Integer chunkSize) {
         this.stepBuilderFactory = stepBuilderFactory;
+        this.chunkSize = chunkSize;
     }
 
     @Bean
@@ -29,7 +33,7 @@ public class Step2Config {
             @Autowired JdbcBatchItemWriter<SliceFileItem> itemWriter) {
 
         return this.stepBuilderFactory.get("readFileAndInsert")
-                .<SliceFileItem,SliceFileItem>chunk(2000)
+                .<SliceFileItem,SliceFileItem>chunk(chunkSize)
                 .reader(itemReader)
                 .processor(new SanityCheckItemProcessor())
                 .writer(itemWriter)

@@ -10,6 +10,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 import net.nicholaspurdy.gtrslicegrabber.model.AssetClass;
@@ -25,10 +26,9 @@ public class JobProcessManager {
 
     private static final Logger log = LoggerFactory.getLogger(JobProcessManager.class);
 
-    private static final int THREAD_POOL_SIZE = 3;
-
     private final ApplicationContext context;
     private final JobLauncher jobLauncher;
+    private final Integer threadPoolSize;
 
     private ExecutorService ratesExecutor;
     private ExecutorService equitiesExecutor;
@@ -37,9 +37,11 @@ public class JobProcessManager {
     private ExecutorService creditsExecutor;
 
     @Autowired
-    public JobProcessManager(ApplicationContext context, JobLauncher jobLauncher) {
+    public JobProcessManager(ApplicationContext context, JobLauncher jobLauncher,
+                             @Value("${slicegrabber.executors.threadPoolSize}") Integer threadPoolSize) {
         this.context = context;
         this.jobLauncher = jobLauncher;
+        this.threadPoolSize = threadPoolSize;
     }
 
     public void execute(List<JobParameters> jobParameters, CountDownLatch latch) {
@@ -95,23 +97,23 @@ public class JobProcessManager {
         switch (assetClass) {
 
             case FOREX:
-                forexExecutor = forexExecutor == null ? Executors.newFixedThreadPool(THREAD_POOL_SIZE) : forexExecutor;
+                forexExecutor = forexExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : forexExecutor;
                 return forexExecutor;
 
             case RATES:
-                ratesExecutor = ratesExecutor == null ? Executors.newFixedThreadPool(THREAD_POOL_SIZE) : ratesExecutor;
+                ratesExecutor = ratesExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : ratesExecutor;
                 return ratesExecutor;
 
             case CREDITS:
-                creditsExecutor = creditsExecutor == null ? Executors.newFixedThreadPool(THREAD_POOL_SIZE) : creditsExecutor;
+                creditsExecutor = creditsExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : creditsExecutor;
                 return creditsExecutor;
 
             case EQUITIES:
-                equitiesExecutor = equitiesExecutor == null ? Executors.newFixedThreadPool(THREAD_POOL_SIZE) : equitiesExecutor;
+                equitiesExecutor = equitiesExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : equitiesExecutor;
                 return equitiesExecutor;
 
             default:
-                commoditiesExecutor = commoditiesExecutor == null ? Executors.newFixedThreadPool(THREAD_POOL_SIZE) : commoditiesExecutor;
+                commoditiesExecutor = commoditiesExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : commoditiesExecutor;
                 return commoditiesExecutor;
 
         }
