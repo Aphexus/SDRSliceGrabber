@@ -5,6 +5,7 @@ import net.nicholaspurdy.gtrslicegrabber.model.SliceFileItem;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecutionListener;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.database.JdbcBatchItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class Step2Config {
+
+    private static final ItemProcessor<SliceFileItem,SliceFileItem> sanityCheck = new SanityCheckItemProcessor();
+    private static final StepExecutionListener listener = new SliceGrabberStepListenerSupport();
 
     private final StepBuilderFactory stepBuilderFactory;
     private final Integer chunkSize;
@@ -30,14 +34,16 @@ public class Step2Config {
     @Qualifier("step2")
     public Step readFileAndInsert(
             @Autowired FlatFileItemReader<SliceFileItem> itemReader,
+            @Autowired CancelOrCorrectItemProcessor itemProcessor,
             @Autowired JdbcBatchItemWriter<SliceFileItem> itemWriter) {
 
         return this.stepBuilderFactory.get("readFileAndInsert")
                 .<SliceFileItem,SliceFileItem>chunk(chunkSize)
                 .reader(itemReader)
-                .processor(new SanityCheckItemProcessor())
+                .processor(sanityCheck)
+                .processor(itemProcessor)
                 .writer(itemWriter)
-                .listener((StepExecutionListener) new SliceGrabberStepListenerSupport())
+                .listener(listener)
                 .build();
     }
 

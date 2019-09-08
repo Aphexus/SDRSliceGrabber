@@ -43,15 +43,15 @@ public class App implements RequestHandler<ScheduledEvent, String> {
                 //"COMMODITIES", "2019_01_01", "2019_03_26"
         };
         //args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};
-        SpringApplication.run(App.class, args);
+        //SpringApplication.run(App.class, args);
 
         //for testing purposes only, comment this line out before committing
-        //testLambda();
+        testLambda();
 
     }
 
     /**
-     * This only exists so that I can run the AWS lambda code locally until I learn how to use the docker runtime.
+     * This only exists so that the AWS lambda code can run locally
      */
     private static void testLambda() {
         Map<String, Object> detail = new HashMap<>();
@@ -100,11 +100,10 @@ public class App implements RequestHandler<ScheduledEvent, String> {
     @SuppressWarnings("unchecked")
     public String handleRequest(ScheduledEvent event, Context context) {
 
-        // build args
         StringBuilder cmd = new StringBuilder();
 
-        List<AssetClass> assetClasses =
-                (List<AssetClass>) event.getDetail().getOrDefault("assetClasses", Arrays.asList(AssetClass.values()));
+        List<AssetClass> assetClasses = (List<AssetClass>) event.getDetail()
+                .getOrDefault("assetClasses", Arrays.asList(AssetClass.values()));
 
         for(AssetClass assetClass : assetClasses) {
             cmd.append(assetClass);
