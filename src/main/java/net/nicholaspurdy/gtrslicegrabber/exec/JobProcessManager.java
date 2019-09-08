@@ -10,6 +10,7 @@ import org.springframework.batch.core.repository.JobExecutionAlreadyRunningExcep
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
@@ -66,9 +67,12 @@ public class JobProcessManager {
         return () -> {
 
             try {
-                log.info("Building & launching job for: " + params.getString("assetClassParam")
-                        + " " + params.getString("dateStrParam"));
-                Job job = context.getBean(Job.class);
+                log.info("Building and launching job for: " + params.getString("assetClassParam") + " "
+                        + params.getString("dateStrParam"));
+
+                Job job = BeanFactoryAnnotationUtils.qualifiedBeanOfType(context.getAutowireCapableBeanFactory(),
+                        Job.class, params.getString("jobTypeParam").toLowerCase());
+
                 jobLauncher.run(job, params);
             }
             catch (JobExecutionAlreadyRunningException | JobInstanceAlreadyCompleteException e) {

@@ -36,6 +36,7 @@ public class App implements RequestHandler<ScheduledEvent, String> {
 
         // ("batch" assetClass startDate endDate repeat)
         args = new String[] {
+                "BATCH",
                 //"RATES", "2019_01_01", "2019_03_26",
                 //"FOREX", "2019_01_01", "2019_02_01",
                 "CREDITS", "2019_01_08", "2019_02_08"
@@ -43,10 +44,10 @@ public class App implements RequestHandler<ScheduledEvent, String> {
                 //"COMMODITIES", "2019_01_01", "2019_03_26"
         };
         //args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};
-        //SpringApplication.run(App.class, args);
+        SpringApplication.run(App.class, args);
 
         //for testing purposes only, comment this line out before committing
-        testLambda();
+        //testLambda();
 
     }
 
@@ -101,6 +102,8 @@ public class App implements RequestHandler<ScheduledEvent, String> {
     public String handleRequest(ScheduledEvent event, Context context) {
 
         StringBuilder cmd = new StringBuilder();
+
+        cmd.append("LAMBDA ");
 
         List<AssetClass> assetClasses = (List<AssetClass>) event.getDetail()
                 .getOrDefault("assetClasses", Arrays.asList(AssetClass.values()));

@@ -20,9 +20,10 @@ public class JobConfig {
     }
 
     @Bean
-    public Job getJob(
+    @Qualifier("lambda")
+    public Job getLambdaJob(
             @Qualifier("step1") Step step1,
-            @Qualifier("step2") Step step2,
+            @Qualifier("lambdaStep2") Step step2,
             @Qualifier("step3") Step step3,
             @Qualifier("step4") Step step4) {
 
@@ -34,5 +35,23 @@ public class JobConfig {
                 .listener(new SliceGrabberJobListener())
                 .build();
     }
+
+    @Bean
+    @Qualifier("batch")
+    public Job getBatchJob(
+            @Qualifier("step1") Step step1,
+            @Qualifier("batchStep2") Step step2,
+            @Qualifier("step3") Step step3,
+            @Qualifier("step4") Step step4) {
+
+        return this.jobBuilderFactory.get("sliceFileGrabberJob")
+                .start(step1)
+                .next(step2)
+                .next(step3)
+                .listener(new SliceGrabberJobListener())
+                .build();
+    }
+
+
 
 }

@@ -24,19 +24,24 @@ final class RunnerUtils {
 
     private RunnerUtils() { }
 
-    static boolean validateArgs(String... args) {
+    static boolean argsAreValid(String... args) {
 
-        if(args == null || args.length == 0) {
+        if (args == null || args.length == 0) {
             log.error("No args were passed in.");
             return false;
         }
 
-        if(args.length > 15) {
+        if (args.length > 16) {
             log.error("Too many args passed.");
             return false;
         }
 
-        int i = 0;
+        if (!"LAMBDA".equals(args[0]) && !"BATCH".equals(args[0])) {
+            log.error("First argument must be LAMBDA or BATCH.");
+            return false;
+        }
+
+        int i = 1;
         try {
             for( ; i < args.length; i += 3) {
                 AssetClass.valueOf(args[i]);
@@ -78,9 +83,10 @@ final class RunnerUtils {
         List<JobParameters> jobParametersList = new ArrayList<>();
 
         JobParameter runDateParam = new JobParameter(new Date(), true);
+        JobParameter jobTypeParam = new JobParameter(args[0], true);
 
         // "RATES", "2015_04_03", "2015_04_06", "CREDITS", "2015_04_03", "2015_04_06"
-        for(int i = 0; i <= args.length - 3; i += 3) {
+        for(int i = 1; i <= args.length - 3; i += 3) {
 
             JobParameter assetClassParam = new JobParameter(args[i], true);
 
@@ -95,6 +101,7 @@ final class RunnerUtils {
                 map.put("dateStrParam", dateStrParam);
                 map.put("runDateParam", runDateParam);
                 map.put("assetClassParam", assetClassParam);
+                map.put("jobTypeParam", jobTypeParam);
 
                 JobParameters jobParameters = new JobParameters(map);
 

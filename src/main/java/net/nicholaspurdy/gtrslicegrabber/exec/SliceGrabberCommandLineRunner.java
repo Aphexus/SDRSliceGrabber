@@ -38,7 +38,8 @@ public final class SliceGrabberCommandLineRunner implements CommandLineRunner {
 
         log.info("Executing command: " + String.join(" ", args));
 
-        if (!RunnerUtils.validateArgs(args)) throw new IllegalArgumentException("Args are invalid.");
+        if (!RunnerUtils.argsAreValid(args))
+            throw new IllegalArgumentException("Args are invalid.");
 
         List<JobParameters> jobParameters = RunnerUtils.generateParams(args);
 
