@@ -41,6 +41,8 @@ public final class FormatUtils {
 
     public static String getSize(File file) {
 
+        if (file == null) return "0 KB";
+
         long kb = file.length() / 1024;
 
         if(kb >= 1024) {
