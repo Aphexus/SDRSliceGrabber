@@ -33,3 +33,22 @@ This command will remove all docker containers.
 ```
 docker-compose down
 ```
+
+Be sure to create the necessary tables located in the schema directory.
+
+## Configurable Properties
+
+The following properties can be set either as environment variables or as JVM properties. If there is no default, it must be set.
+
+| Property | Notes |
+|----------|------------|
+| spring.profiles.active | The active Spring profile. Default profile should only be used for local development.
+| aws.accessKeyId | Self-explanatory
+| aws.secretAccessKey | Self-explanatory.
+| slicegrabber.jdbcUrl | Database jdbc url.
+| slicegrabber.datasource.username | Database username.
+| slicegrabber.datasource.password | Database password
+| slicegrabber.itemwriter.chunkSize | Number of records stored in memory (per asset class) before being written to the database. Default is 1000. |
+| slicegrabber.executors.threadPoolSize | Number of concurrent threads (per asset class). Should be 1 when executing jobs on AWS Lambda since lambda jobs will process cancellation and correction records. Default is 1. |
+| slicegrabber.datasource.maxPoolSize | Specifies the size of the database connection pool. Default is 16. |
+
