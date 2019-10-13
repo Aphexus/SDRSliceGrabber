@@ -25,49 +25,22 @@ import java.util.Map;
 @EnableBatchProcessing
 public class App implements RequestHandler<ScheduledEvent, String> {
 
-    private static final Logger log = LoggerFactory.getLogger(App.class);
-
     /**
      * This method is called when executing the program from AWS Batch.
+     *
+     * Example args:
+     *
+     * LAMBDA CREDITS 2019_01_08 2019_01_08
+     *
+     * BATCH RATES 2019_01_01 2019_04_01 FOREX 2019_01_01 2019_04_01 CREDITS 2019_01_01 2019_04_01 EQUITIES 2019_01_01 2019_04_01 COMMOTITIES 2019_01_01 2019_04_01
+     *
      *
      * @param args The command line args specified in the JSON
      */
     public static void main(String[] args) {
-
-        // ("batch" assetClass startDate endDate repeat)
-        args = new String[] {
-                "BATCH",
-                //"RATES", "2019_01_01", "2019_03_26",
-                //"FOREX", "2019_01_01", "2019_02_01",
-                "CREDITS", "2019_01_08", "2019_02_08"
-                //"EQUITIES", "2019_01_01", "2019_04_01",
-                //"COMMODITIES", "2019_01_01", "2019_03_26"
-        };
-        //args = new String[] { "CREDITS", "2019_02_29", "2019_02_29"};
         SpringApplication.run(App.class, args);
-
-        //for testing purposes only, comment this line out before committing
-        //testLambda();
-
     }
 
-    /**
-     * This only exists so that the AWS lambda code can run locally
-     */
-    private static void testLambda() {
-        Map<String, Object> detail = new HashMap<>();
-        detail.put("assetClasses", Arrays.asList(AssetClass.values()));
-
-        ScheduledEvent scheduledEvent = new ScheduledEvent();
-        scheduledEvent.setDetail(detail);
-        scheduledEvent.setTime(new DateTime(2017, 8,24,2,30));
-
-        Context context = new MockContext();
-
-        App app = new App();
-
-        app.handleRequest(scheduledEvent, context);
-    }
 
     /**
      * This method is called if the program is executed from AWS Lambda.

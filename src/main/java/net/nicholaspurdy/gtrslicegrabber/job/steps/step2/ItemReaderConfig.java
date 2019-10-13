@@ -24,7 +24,7 @@ public class ItemReaderConfig {
                 .resource(new FileSystemResource(file))
                 .delimited()
                 .names(JobUtils.FIELD_NAMES)
-                .fieldSetMapper(new CustomBeanWrapperFieldSetMapper<>() {{
+                .fieldSetMapper(new CustomBeanWrapperFieldSetMapper<SliceFileItem>() {{
                     setTargetType(SliceFileItem.class);
                 }}).build();
 
