@@ -60,7 +60,7 @@ The jar itself is executable, but requires certain command line args in the foll
 
 ```(LAMBDA|BATCH) ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+```
 
-```START_DATE``` and ```END_DATE``` should be in ```yyyy_MM_dd``` format with the start date being less than or equal to the end date and the end date being less than the current date if your local date is behind UTC (end of day cumulative slice files are usually released a few minutes after midnight, UTC). **Note:** Public data only goes as far back Oct. 23, 2016.
+```START_DATE``` and ```END_DATE``` should be in ```yyyy_MM_dd``` format with the start date being less than or equal to the end date and the end date being less than the current date if your local date is behind UTC (end of day cumulative slice files are usually released a few minutes after midnight, UTC). **Note:** Public data only goes as far back as October 23, 2016.
 
 Using ```LAMBDA``` as the first argument will make it so that cancellation and correction records are accounted for at the end of each job. This post-processing will not work (due to locking and potentially missing original dimmenation IDs) when ```slicegrabber.executors.threadPoolSize``` is set to a number greater than 1. Therefore, it is recommended to use the ```BATCH``` argument for your initial historical data load, and then run the stored procedure afterwards for that particular asset class.
 
