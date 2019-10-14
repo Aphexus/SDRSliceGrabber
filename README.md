@@ -38,16 +38,16 @@ Be sure to create the necessary tables located in the schema directory.
 
 ## Configurable Properties
 
-The following properties can be set either as environment variables or as JVM properties. If there is no default, it must be set.
+The following properties can be set either as environment variables, JVM properties, or in properties files. If there is no default, it must be set.
 
 | Property | Notes |
 |----------|------------|
 | spring.profiles.active | The active Spring profile. Default profile should only be used for local development.
-| aws.accessKeyId | Self-explanatory
-| aws.secretAccessKey | Self-explanatory.
-| slicegrabber.jdbcUrl | Database jdbc url.
-| slicegrabber.datasource.username | Database username.
-| slicegrabber.datasource.password | Database password
+| aws.accessKeyId | No default. Only needed if executing the code from your local machine, otherwise just use IAM roles.
+| aws.secretAccessKey | Same as above.
+| slicegrabber.jdbcUrl | Should only be set if executing the code from your local machine, otherwise use Systems Manager Parameter Store to obtain the datasource's properties (more to follow).
+| slicegrabber.datasource.username | Database username. Same as above.
+| slicegrabber.datasource.password | Database password Same as above.
 | slicegrabber.itemwriter.chunkSize | Number of records stored in memory (per asset class) before being written to the database. Default is 1000. |
 | slicegrabber.executors.threadPoolSize | Number of concurrent threads (per asset class). Should be 1 when executing jobs on AWS Lambda since lambda jobs will process cancellation and correction records. Default is 1. |
 | slicegrabber.datasource.maxPoolSize | Specifies the size of the database connection pool. Default is 16. |
@@ -60,7 +60,9 @@ The jar itself is executable, but requires certain command line args in the foll
 
 ```(LAMBDA|BATCH) ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+```
 
-```START_DATE``` and ```END_DATE``` should be in ```yyyy_MM_dd``` format with the start date being less than or equal to the end date and the end date being less than the current date if your local date is behind UTC (end of day cumulative slice files are usually released a few minutes after midnight, UTC). **Note:** Public data only goes as far back as October 23, 2016.
+```START_DATE``` and ```END_DATE``` should be in ```yyyy_MM_dd``` format with the start date being less than or equal to the end date and the end date being less than the current date if your local date is behind UTC (end of day cumulative slice files are usually released a few minutes after midnight, UTC).
+
+**Note:** Public data only goes as far back as December 31, 2012 for Credits and Rates, and as far back as February 28, 2013 for Equities, Forex and Commodities.
 
 Using ```LAMBDA``` as the first argument will make it so that cancellation and correction records are accounted for at the end of each job. This post-processing will not work (due to locking and potentially missing original dimmenation IDs) when ```slicegrabber.executors.threadPoolSize``` is set to a number greater than 1. Therefore, it is recommended to use the ```BATCH``` argument for your initial historical data load, and then run the stored procedure afterwards for that particular asset class.
 
