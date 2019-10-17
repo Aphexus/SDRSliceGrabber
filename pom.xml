@@ -77,11 +77,11 @@
         </dependency>
 
         <dependency>
-            <groupId>io.findify</groupId>
-            <artifactId>s3mock_2.12</artifactId>
-            <version>0.2.5</version>
-            <scope>test</scope>
+            <groupId>com.adobe.testing</groupId>
+            <artifactId>s3mock</artifactId>
+            <version>2.1.16</version>
         </dependency>
+
 
         <dependency>
             <groupId>com.h2database</groupId>

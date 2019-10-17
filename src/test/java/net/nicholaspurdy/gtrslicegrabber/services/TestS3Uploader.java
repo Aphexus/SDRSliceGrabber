@@ -1,9 +1,10 @@
 package net.nicholaspurdy.gtrslicegrabber.services;
 
-import io.findify.s3mock.S3Mock;
+import com.adobe.testing.s3mock.S3MockApplication;
 
 import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Config;
 import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Uploader;
+import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,12 +37,12 @@ public class TestS3Uploader {
     @Autowired
     private S3Client s3Client;
 
-    @Value("${slice.bucket.suffix}")
-    private String suffix;
+    @Value("${slicegrabber.bucketName}")
+    private String bucketName;
 
     private File zipFile;
     private File resultFile;
-    private S3Mock api;
+    private S3MockApplication s3Mock;
 
     @Before
     public void setup() throws IOException {
@@ -51,41 +52,39 @@ public class TestS3Uploader {
 
         resultFile = new File(System.getProperty("java.io.tmpdir") + "/result.zip");
 
-        api = S3Mock.create(8001, "/tmp/s3");
-        api.start();
-
-        s3Client.createBucket(CreateBucketRequest.builder().bucket("gtr-cumulative-slice-zips-"+suffix).build());
+        s3Mock = S3MockApplication.start("--root=/tmp/S3Mock", "--initialBuckets=" + bucketName);
 
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws IOException {
 
         zipFile.delete();
         resultFile.delete();
 
         DeleteObjectRequest dor = DeleteObjectRequest.builder()
-                .bucket("gtr-cumulative-slice-zips-"+suffix)
+                .bucket(bucketName)
                 .key("credits/"+zipFile.getName())
                 .build();
 
         s3Client.deleteObject(dor);
 
+        s3Mock.stop();
 
-
+        FileUtils.forceDelete(new File("/tmp/S3Mock"));
     }
 
     @Test
     public void testUpload() {
 
-        S3Uploader uploader = new S3Uploader(s3Client, suffix);
+        S3Uploader uploader = new S3Uploader(s3Client, bucketName);
 
 
         PutObjectResponse poresponse = uploader.upload(zipFile);
         assertNotNull(poresponse.getValueForField("ETag", String.class));
 
         GetObjectRequest gorequest = GetObjectRequest.builder()
-                .bucket("gtr-cumulative-slice-zips-"+suffix)
+                .bucket(bucketName)
                 .key("credits/"+zipFile.getName())
                 .build();
 
