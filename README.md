@@ -8,49 +8,64 @@ As it stands today, certain participants are required to report their trades to 
 
 DTCC operates the Global Trade Repository or GTR which is the largest SDR in the world by market share. The code in this repo is primarily a Spring Batch program which will download public data from DTCC's SDR public reporting site [here](https://rtdata.dtcc.com/gtr/), insert it into a database, and process cancellation or correction messages. DTCC refers to this data as slice reports, hence the name. A more concise description of the public data reported by DTCC can be found [here](https://www.sec.gov/rules/other/2017/ddr/dtcc-data-repository-form-sdr-ex-gg-7-amend.pdf). There are directions below on how to deploy the code to AWS Batch for the initial historical data load and to AWS Lambda for nightly downloads of the latest data.
 
-## Local MySQL Setup w/ Docker
+## Intro
+
+The code in this repo is mainly a Spring Batch program that can download data from GTR in bulk. A DockerFile is supplied to build an image which can run on AWS Batch for the initial historical data load, plus stored procedures to process the CORRECT and CANCEL messages afterwards (to save you from spending more money on EC2 instances for AWS Batch). 
+
+The main class in the codebase (```net.nicholaspurdy.gtrslicegrabber.App```) implements AWS Lambda's RequestHandler interface so the code can then be ran on AWS Lambda on a nightly basis. The CORRECT and CANCEL messages will be processed automatically in this case. No need to manually call a stored procedure from MySQL Workbench. 
+
+CloudFormation templates are a work in process.
+
+## Architecture
+
+The Spring Batch program will download files from DTCC's public reporting website and save the files themselves to S3 while inserting the individual records into a MySQL database so that CORRECT and CANCEL messages can be processed. Whether or not this post processing occurs depends on the first command line argument, either LAMBDA or BATCH. 
+
+The execution path of a single job is provided below (one job = date + asset class):
+
+![GTRSliceGrabber Execution Path](http://nicholaspurdy.net/GTRSliceGrabber_execution_path.png)
+
+The tables in MySQL (minus the ones for Spring Batch) are shown here:
+
+
+![GTRSliceGrabber Tables](http://nicholaspurdy.net/GTRSliceGrabber_tables.png)
+
+## Local Setup w/ Docker
+
+You do not need an AWS account to run the code locally, but a couple of docker containers do need to be set up.
+
+#### MySQL
+The following shows how to get MySQL up and running:
 ```
 docker pull mysql/mysql-server:8.0
 docker images
-docker run -p 3306:3306 --name=slicegrabber_container -e MYSQL_ROOT_PASSWORD=password -d mysql/mysql-server:8.0
+docker run -p 3306:3306 --name=slicegrabber_mysql -e MYSQL_ROOT_PASSWORD=password -d mysql/mysql-server:8.0
 docker ps
-docker exec -it slicegrabber_container mysql -uroot -p
+docker exec -it slicegrabber_mysql mysql -uroot -p
 update mysql.user set host = '%' where user = 'root';
 select host, user from mysql.user;
 create database slicegrabberdb;
-(exit mysql)
-docker restart slicegrabber_container;
+Ctrl-C (exit mysql)
+docker restart slicegrabber_mysql;
+```
+Once that's done, assuming ```slicegrabber_mysql``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```jdbc:mysql://172.17.0.2:3306/slicegrabberdb```. Username is root and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/GTRSliceGrabber/tree/master/schema) directory.
 
-docker stop/start/restart slicegrabber_container
+#### S3Mock
+
+To simulate AWS S3, you should use [S3Mock](https://github.com/adobe/S3Mock), built by Adobe. You can get it up and running with one command:
+
+```
+docker run -p 9090:9090 -p 9191:9191 --name=slicegrabber_s3mock -e initialBuckets='mockbucket' -d adobe/s3mock
 ```
 
-This command will stop all docker containers.
-```
-killall docker-containerd-shim
-```
-
-This command will remove all docker containers.
-```
-docker-compose down
-```
-
-Be sure to create the necessary tables located in the schema directory.
-
-## Configurable Properties
-
-The following properties can be set either as environment variables, JVM properties, or in properties files. If there is no default, it must be set.
-
-| Property | Notes |
-|----------|------------|
-| spring.profiles.active | The active Spring profile. Default profile should only be used for local development.
-| aws.accessKeyId | No default. Only needed if executing the code from your local machine, otherwise just use IAM roles.
-| aws.secretAccessKey | Same as above.
-| slicegrabber.jdbcUrl | Should only be set if executing the code from your local machine, otherwise use Systems Manager Parameter Store to obtain the datasource's properties (more to follow).
-| slicegrabber.datasource.username | Database username. Same as above.
-| slicegrabber.datasource.password | Database password Same as above.
-| slicegrabber.itemwriter.chunkSize | Number of records stored in memory (per asset class) before being written to the database. Default is 1000. |
-| slicegrabber.executors.threadPoolSize | Number of concurrent threads (per asset class). Should be 1 when executing jobs on AWS Lambda since lambda jobs will process cancellation and correction records. Default is 1. |
-| slicegrabber.datasource.maxPoolSize | Specifies the size of the database connection pool. Default is 16. |
+#### Useful Docker Commands
+| Result | Command
+|-------|-------
+| Stop, start, or restart a container | ```docker stop/start/restart slicegrabber_mysql```
+| Remove a container | ```docker rm slicegrabber_s3mock```
+| Stop all containers | ```killall docker-containerd-shim```
+| Remove all containers | ```docker-compose down```
+| List images | ```docker images```
+| List all containers | ```docker ls -a```
 
 ## Building and Executing
 
@@ -73,6 +88,18 @@ A few example arguments with their explanation are provided below:
 | ```java -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively, one at a time.
 | ```java -Dslicegrabber.executors.threadPoolSize=3 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Each asset class will have its own threadpool of size 3 to download and insert data into the database, but since the ```BATCH``` argument was used, cancellation and correction records were not processed (they were still inserted, but the original dissemination ID was not marked as cancelled/corrected).
 
-## Deploying to AWS Batch for the Initial Historical Data Load
 
-## Deploying to AWS Lambda for Nightly Downloads
+## Configurable Properties
+
+The following properties can be set either as environment variables, JVM properties, or in properties files. If there is no default, it must be set.
+
+| Property | Notes |
+|----------|------------|
+| spring.profiles.active | The active Spring profile. Default profile should only be used for local development.
+| slicegrabber.jdbcUrl | Should only be set if executing the code from your local machine, otherwise use Systems Manager Parameter Store to obtain the datasource's properties (more to follow).
+| slicegrabber.datasource.username | Database username. Same as above.
+| slicegrabber.datasource.password | Database password Same as above.
+| slicegrabber.itemwriter.chunkSize | Number of records stored in memory (per asset class) before being written to the database. Default is 1000. |
+| slicegrabber.executors.threadPoolSize | Number of concurrent threads (per asset class). Should be 1 when executing jobs on AWS Lambda since lambda jobs will process cancellation and correction records. Default is 1. |
+| slicegrabber.datasource.maxPoolSize | Specifies the size of the database connection pool. Default is 16. |
+
