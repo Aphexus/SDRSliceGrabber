@@ -80,6 +80,7 @@
             <groupId>com.adobe.testing</groupId>
             <artifactId>s3mock</artifactId>
             <version>2.1.16</version>
+            <scope>test</scope>
         </dependency>
 
 

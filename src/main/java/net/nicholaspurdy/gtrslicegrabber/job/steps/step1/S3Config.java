@@ -20,7 +20,7 @@ public class S3Config {
 
         return S3Client.builder()
                 .credentialsProvider(AnonymousCredentialsProvider.create())
-                .endpointOverride(new URI("http://127.0.0.1:9090"))
+                .endpointOverride(new URI(env.getProperty("slicegrabber.s3mockUrl")))
                 .region(Region.of(env.getProperty("aws.region")))
                 .build();
     }

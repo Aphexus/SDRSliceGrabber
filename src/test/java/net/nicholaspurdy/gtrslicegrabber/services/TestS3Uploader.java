@@ -52,7 +52,8 @@ public class TestS3Uploader {
 
         resultFile = new File(System.getProperty("java.io.tmpdir") + "/result.zip");
 
-        s3Mock = S3MockApplication.start("--root=/tmp/S3Mock", "--initialBuckets=" + bucketName);
+        s3Mock = S3MockApplication.start("--root=" + System.getProperty("java.io.tmpdir") + "/S3Mock",
+                "--initialBuckets=" + bucketName);
 
     }
 
@@ -71,7 +72,7 @@ public class TestS3Uploader {
 
         s3Mock.stop();
 
-        FileUtils.forceDelete(new File("/tmp/S3Mock"));
+        FileUtils.forceDelete(new File(System.getProperty("java.io.tmpdir") + "/S3Mock"));
     }
 
     @Test
