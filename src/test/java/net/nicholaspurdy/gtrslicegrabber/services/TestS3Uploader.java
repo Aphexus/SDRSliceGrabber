@@ -53,7 +53,7 @@ public class TestS3Uploader {
         resultFile = new File(System.getProperty("java.io.tmpdir") + "/result.zip");
 
         s3Mock = S3MockApplication.start("--root=" + System.getProperty("java.io.tmpdir") + "/S3Mock",
-                "--initialBuckets=" + bucketName);
+                "--initialBuckets=" + bucketName, "--http.port=9098", "--server.port=9099");
 
     }
 
