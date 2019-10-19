@@ -2,15 +2,15 @@
 
 ## Background
 
-Title VII of the Dodd-Frank Wall Street Reform Act gave the CFTC and the SEC a broad framework for regulating OTC derivatives markets. There are requirements for clearing and trade reporting amongst other things mentioned in the law. Section 727 specifically mandates that some of this data be reported to the public. 
+Title VII of the Dodd-Frank Wall Street Reform Act gave the CFTC and the SEC a broad framework for regulating OTC derivatives markets. There are requirements for clearing and trade reporting amongst other things mentioned in the law. Section 727 specifically mandates that some of this trade data be reported to the public. 
 
 As it stands today, certain participants are required to report their trades to Swap Data Repositories or SDRs. These SDRs then report the data to the public. It is commonly referred to as "Part 43" data after Part 43 of Chapter 1 of Title 17 in the Code of Federal Regulations which you can read [here](https://www.law.cornell.edu/cfr/text/17/part-43).
 
 DTCC operates the Global Trade Repository or GTR which is the largest SDR in the world by market share. The code in this repo is primarily a Spring Batch program which will download public data from DTCC's SDR public reporting site [here](https://rtdata.dtcc.com/gtr/), insert it into a database, and process cancellation or correction messages. DTCC refers to this data as slice reports, hence the name. A more concise description of the public data reported by DTCC can be found [here](https://www.sec.gov/rules/other/2017/ddr/dtcc-data-repository-form-sdr-ex-gg-7-amend.pdf). There are directions below on how to deploy the code to AWS Batch for the initial historical data load and to AWS Lambda for nightly downloads of the latest data.
 
-## Intro
+## More on this Repo
 
-The code in this repo is mainly a Spring Batch program that can download data from GTR in bulk. A DockerFile is supplied to build an image which can run on AWS Batch for the initial historical data load, plus stored procedures to process the CORRECT and CANCEL messages afterwards (to save you from spending more money on EC2 instances for AWS Batch). 
+A DockerFile is supplied to build an image which can run on AWS Batch for the initial historical data load, plus stored procedures to process the CORRECT and CANCEL messages afterwards (to save you from spending more money on EC2 instances for AWS Batch). 
 
 The main class in the codebase (```net.nicholaspurdy.gtrslicegrabber.App```) implements AWS Lambda's RequestHandler interface so the code can then be ran on AWS Lambda on a nightly basis. The CORRECT and CANCEL messages will be processed automatically in this case. No need to manually call a stored procedure from MySQL Workbench. 
 
@@ -18,7 +18,7 @@ CloudFormation templates are a work in process.
 
 ## Architecture
 
-The Spring Batch program will download files from DTCC's public reporting website and save the files themselves to S3 while inserting the individual records into a MySQL database so that CORRECT and CANCEL messages can be processed. Whether or not this post processing occurs depends on the first command line argument, either LAMBDA or BATCH. 
+The Spring Batch program will download files from DTCC's public reporting website and save the files themselves to S3 while inserting the individual records into a MySQL database so that CORRECT and CANCEL messages can be processed. Whether or not this post-processing occurs depends on the first command line argument, either LAMBDA or BATCH. 
 
 The execution path of a single job is provided below (one job = date + asset class):
 
@@ -36,12 +36,10 @@ You do not need an AWS account to run the code locally, but a couple of docker c
 The following shows how to get MySQL up and running:
 ```
 docker pull mysql/mysql-server:8.0
-docker images
 docker run -p 3306:3306 --name=slicegrabber_mysql -e MYSQL_ROOT_PASSWORD=password -d mysql/mysql-server:8.0
-docker ps
+docker ps (check if its still starting or has started)
 docker exec -it slicegrabber_mysql mysql -uroot -p
 update mysql.user set host = '%' where user = 'root';
-select host, user from mysql.user;
 create database slicegrabberdb;
 Ctrl-C (exit mysql)
 docker restart slicegrabber_mysql;
@@ -91,7 +89,7 @@ In this program, each asset class gets its own thread pool with a default size o
 
 | Property | Notes |
 |----------|------------|
-| ```spring.profiles.active``` | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. In the future, setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store
+| ```spring.profiles.active``` | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. In the future, setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store.
 | ```slicegrabber.executors.threadPoolSize``` | Size of the thread pool for each asset class. Default is 1 if executing the jar file directly.
 | ```slicegrabber.itemwriter.chunkSize``` | Spring Batch will hold this number of records in memory before writing each chunk to the database. Default is 1000.
 | ```slicegrabber.datasource.maxPoolSize``` | Specifies the size of the database connection pool. Default is 16.
@@ -107,7 +105,7 @@ In both cases however, the connection pool size should always at least be equal 
 | Command | Explanation
 |---|---
 | ```java -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively, one at a time since the default threadPoolSize of 1 is used.
-| ```java -Dslicegrabber.executors.threadPoolSize=3 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Each asset class will have its own threadpool of size 3 to download and insert data into the database, but since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination ID will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
+| ```java -Dslicegrabber.executors.threadPoolSize=3 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Each asset class will have its own threadpool of size 3 to download and insert data into the database, but since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination IDs will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
 | ```docker run --rm -e chunkSize="2000" gtrslicegrabber:latest CREDITS 2019_02_12 2019_02_12``` | This run is using the docker image which only uses the ```BATCH``` argument. The 3 variables discussed earlier are all overridable using docker environment variables as seen here with ```chunkSize```. Just use the last word in the property as oppossed to the whole thing.
 
 **Note:** MySQL and S3Mock still need to be running in their own docker containers when using the ```gtrslicegrabber``` image to execute the program locally.
