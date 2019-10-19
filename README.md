@@ -26,7 +26,6 @@ The execution path of a single job is provided below (one job = date + asset cla
 
 The tables in MySQL (minus the ones for Spring Batch) are shown here:
 
-
 ![GTRSliceGrabber Tables](http://nicholaspurdy.net/GTRSliceGrabber_tables.png)
 
 ## Local Setup w/ Docker
@@ -52,7 +51,6 @@ Once that's done, assuming ```slicegrabber_mysql``` is the only docker container
 #### S3Mock
 
 To simulate AWS S3, you should use [S3Mock](https://github.com/adobe/S3Mock), built by Adobe. You can get it up and running with one command:
-
 ```
 docker run -p 9090:9090 -p 9191:9191 --name=slicegrabber_s3mock -e initialBuckets='mockbucket' -d adobe/s3mock
 ```
@@ -72,16 +70,18 @@ docker run -p 9090:9090 -p 9191:9191 --name=slicegrabber_s3mock -e initialBucket
 To build the project, simply run ```mvn clean package```. Besides generating a jar in the standard target directory, maven will also call ```docker build``` to generate a docker image made specifically for AWS Batch. This will overwrite old docker images without deleting them automatically. To delete them, use ```docker rmi $(docker images --filter "dangling=true" -q --no-trunc)```.
 
 To execute the jar, command line args are required in the following order:
-
-```(LAMBDA|BATCH) ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+```
+```
+(LAMBDA|BATCH) ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+
+```
 
 ```START_DATE``` and ```END_DATE``` should be in ```yyyy_MM_dd``` format with the start date being less than or equal to the end date and the end date being less than the current date if your local date is behind UTC (end of day cumulative slice files are usually released a few minutes after midnight, UTC).
 
 To execute the docker image, run the following:
+```
+docker run --rm gtrslicegrabber:latest ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+
+```
 
-```docker run --rm gtrslicegrabber:latest ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+```
-
-With the docker image, the BATCH argument is always used. This is hardcoded in the DockerFile. 
+With the docker image, the ```BATCH``` argument is always used. This is hardcoded in the DockerFile. 
 
 **Note:** Public data only goes as far back as December 31, 2012 for Credits and Rates, and as far back as February 28, 2013 for Equities, Forex and Commodities.
 
@@ -91,16 +91,16 @@ In this program, each asset class gets its own thread pool with a default size o
 
 | Property | Notes |
 |----------|------------|
-| spring.profiles.active | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. In the future, setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store
-| slicegrabber.executors.threadPoolSize | Size of the thread pool for each asset class. Default is 1 if executing the jar file directly.
-| slicegrabber.itemwriter.chunkSize | Spring Batch will hold this number of records in memory before writing each chunk to the database. Default is 1000.
-| slicegrabber.datasource.maxPoolSize | Specifies the size of the database connection pool. Default is 16.
+| ```spring.profiles.active``` | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. In the future, setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store
+| ```slicegrabber.executors.threadPoolSize``` | Size of the thread pool for each asset class. Default is 1 if executing the jar file directly.
+| ```slicegrabber.itemwriter.chunkSize``` | Spring Batch will hold this number of records in memory before writing each chunk to the database. Default is 1000.
+| ```slicegrabber.datasource.maxPoolSize``` | Specifies the size of the database connection pool. Default is 16.
 
 Nightly jobs running on AWS Lambda should always have a thread pool size of 1 since only 1 cumulative slice report is released each day at midnight UTC. The more memory you allocate to your lambda function, the higher you can set the chunk size.
 
 For jobs running with the ```BATCH``` argument, the optimum pool/chunk size will depend on your physical machine's resources or the instance size.
 
-In both cases however, the connection pool size should always at least be equal to (threadPoolSize * the number of asset classes running) + 1 in order to prevent deadlocks as Spring Batch will be need to use the same connection pool to update its Job Repository.
+In both cases however, the connection pool size should always at least be equal to (```threadPoolSize``` * the number of asset classes running) + 1 in order to prevent deadlocks as Spring Batch will be need to use the same connection pool to update its Job Repository.
 
 #### Example Executions
 
@@ -108,7 +108,7 @@ In both cases however, the connection pool size should always at least be equal 
 |---|---
 | ```java -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively, one at a time since the default threadPoolSize of 1 is used.
 | ```java -Dslicegrabber.executors.threadPoolSize=3 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Each asset class will have its own threadpool of size 3 to download and insert data into the database, but since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination ID will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
-| ```docker run --rm -e chunkSize="2000" gtrslicegrabber:latest CREDITS 2019_02_12 2019_02_12``` | This run is using the docker image which only uses the BATCH argument. The 3 variables discussed earlier are all overridable using docker environment variables as seen here with ```chunkSize```. Just use the last word in the property as oppossed to the whole thing.
+| ```docker run --rm -e chunkSize="2000" gtrslicegrabber:latest CREDITS 2019_02_12 2019_02_12``` | This run is using the docker image which only uses the ```BATCH``` argument. The 3 variables discussed earlier are all overridable using docker environment variables as seen here with ```chunkSize```. Just use the last word in the property as oppossed to the whole thing.
 
 **Note:** MySQL and S3Mock still need to be running in their own docker containers when using the ```gtrslicegrabber``` image to execute the program locally.
 
