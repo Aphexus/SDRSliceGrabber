@@ -27,7 +27,7 @@ public class JobConfig {
             @Qualifier("step3") Step step3,
             @Qualifier("step4") Step step4) {
 
-        return this.jobBuilderFactory.get("sliceFileGrabberJob")
+        return this.jobBuilderFactory.get("lambdaJob")
                 .start(step1)
                 .next(step2)
                 .next(step3)
@@ -44,7 +44,7 @@ public class JobConfig {
             @Qualifier("step3") Step step3,
             @Qualifier("step4") Step step4) {
 
-        return this.jobBuilderFactory.get("sliceFileGrabberJob")
+        return this.jobBuilderFactory.get("batchJob")
                 .start(step1)
                 .next(step2)
                 .next(step3)
