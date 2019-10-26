@@ -32,19 +32,12 @@ The tables in MySQL (minus the ones for Spring Batch) are shown here:
 
 You do not need an AWS account to run the code locally, but a couple of docker containers do need to be set up.
 
-#### MySQL
-The following shows how to get MySQL up and running:
+#### PostgreSQL
+Postgres can be set up with one command:
 ```
-docker pull mysql/mysql-server:8.0
-docker run -p 3306:3306 --name=slicegrabber_mysql -e MYSQL_ROOT_PASSWORD=password -d mysql/mysql-server:8.0
-docker ps (check if its still starting or has started)
-docker exec -it slicegrabber_mysql mysql -uroot -p
-update mysql.user set host = '%' where user = 'root';
-create database slicegrabberdb;
-Ctrl-C (exit mysql)
-docker restart slicegrabber_mysql;
+docker run -p 5432:5432 --name=slicegrabber_postgres -e POSTGRES_PASSWORD=password -d postgres
 ```
-Once that's done, assuming ```slicegrabber_mysql``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```jdbc:mysql://172.17.0.2:3306/slicegrabberdb```. Username is root and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/GTRSliceGrabber/tree/master/schema) directory.
+Once that's done, assuming ```slicegrabber_postgres``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```dbc:postgresql://172.17.0.2:5432/postgres```. Username is postgres and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/GTRSliceGrabber/tree/master/schema) directory.
 
 #### S3Mock
 
@@ -85,27 +78,25 @@ With the docker image, the ```BATCH``` argument is always used. This is hardcode
 
 #### Configurable Properties
 
-In this program, each asset class gets its own thread pool with a default size of 1. The default chunk size of the item processing step is 1000, and the default size of the JDBC connection pool is 16. All 3 of these properties are configurable either through JVM properties, OS environment variables, or through modifying the property files. More explanation is provided here:
-
 | Property | Notes |
 |----------|------------|
-| ```spring.profiles.active``` | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. In the future, setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store.
-| ```slicegrabber.executors.threadPoolSize``` | Size of the thread pool for each asset class. Default is 1 if executing the jar file directly.
+| ```spring.profiles.active``` | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. Setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store (For AWS Lambda, you should set the environment variable ```SPRING_PROFILES_ACTIVE```).
+| ```slicegrabber.executor.threadPoolSize``` | Controls how many jobs can run at once. Default is 8 if executing the jar file directly.
 | ```slicegrabber.itemwriter.chunkSize``` | Spring Batch will hold this number of records in memory before writing each chunk to the database. Default is 1000.
-| ```slicegrabber.datasource.maxPoolSize``` | Specifies the size of the database connection pool. Default is 16.
+| ```slicegrabber.datasource.maxPoolSize``` | Specifies the size of the database connection pool. Default is 10.
 
-Nightly jobs running on AWS Lambda should always have a thread pool size of 1 since only 1 cumulative slice report is released each day at midnight UTC. The more memory you allocate to your lambda function, the higher you can set the chunk size.
+For AWS Lambda, the more memory you allocate to your lambda function, the higher you can set the chunk size.
 
 For jobs running with the ```BATCH``` argument, the optimum pool/chunk size will depend on your physical machine's resources or the instance size.
 
-In both cases however, the connection pool size should always at least be equal to (```threadPoolSize``` * the number of asset classes running) + 1 in order to prevent deadlocks as Spring Batch will be need to use the same connection pool to update its Job Repository.
+In both cases however, the connection pool size should always at least be equal to the ```threadPoolSize```.
 
 #### Example Executions
 
 | Command | Explanation
 |---|---
-| ```java -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively, one at a time since the default threadPoolSize of 1 is used.
-| ```java -Dslicegrabber.executors.threadPoolSize=3 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Each asset class will have its own threadpool of size 3 to download and insert data into the database, but since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination IDs will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
+| ```java -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively,all at once since the default thread pool size of 8 is used.
+| ```java -Dslicegrabber.executor.threadPoolSize=10 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination IDs will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
 | ```docker run --rm -e chunkSize="2000" gtrslicegrabber:latest CREDITS 2019_02_12 2019_02_12``` | This run is using the docker image which only uses the ```BATCH``` argument. The 3 variables discussed earlier are all overridable using docker environment variables as seen here with ```chunkSize```. Just use the last word in the property as oppossed to the whole thing.
 
 **Note:** MySQL and S3Mock still need to be running in their own docker containers when using the ```gtrslicegrabber``` image to execute the program locally.
