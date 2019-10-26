@@ -37,7 +37,7 @@ Postgres can be set up with one command:
 ```
 docker run -p 5432:5432 --name=slicegrabber_postgres -e POSTGRES_PASSWORD=password -d postgres
 ```
-Once that's done, assuming ```slicegrabber_postgres``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```dbc:postgresql://172.17.0.2:5432/postgres```. Username is postgres and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/GTRSliceGrabber/tree/master/schema) directory.
+Once that's done, assuming ```slicegrabber_postgres``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```jdbc:postgresql://172.17.0.2:5432/postgres```. Username is postgres and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/GTRSliceGrabber/tree/master/schema) directory.
 
 #### S3Mock
 
@@ -80,7 +80,6 @@ With the docker image, the ```BATCH``` argument is always used. This is hardcode
 
 | Property | Notes |
 |----------|------------|
-| ```spring.profiles.active``` | This property is standard across all Spring applications. Leaving it unset will make the ```default``` profile active which is what should be used for local developement. Setting this to ```dev``` or ```prod``` will cause properties to be read from AWS Systems Manager Parameter Store (For AWS Lambda, you should set the environment variable ```SPRING_PROFILES_ACTIVE```).
 | ```slicegrabber.executor.threadPoolSize``` | Controls how many jobs can run at once. Default is 8 if executing the jar file directly.
 | ```slicegrabber.itemwriter.chunkSize``` | Spring Batch will hold this number of records in memory before writing each chunk to the database. Default is 1000.
 | ```slicegrabber.datasource.maxPoolSize``` | Specifies the size of the database connection pool. Default is 10.
