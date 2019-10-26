@@ -33,7 +33,6 @@ public class SliceGrabberBatchConfigurer extends DefaultBatchConfigurer {
         factory.setValidateTransactionState(false);
 
         try {
-            log.info("$$$$ LOOK HERE Constructing job repository in custom batch configurer." + (dataSource == null));
             return factory.getObject();
         } catch (Exception e) {
             log.error("Could not construct JobRepository bean.", e);

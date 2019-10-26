@@ -20,8 +20,8 @@ public class SliceFileDao {
 
     public SliceFileDao(DataSource dataSource) {
         this.jdbc = new SimpleJdbcInsert(dataSource)
-                .withTableName("FILES")
-                .usingGeneratedKeyColumns("ID");
+                .withTableName("files")
+                .usingGeneratedKeyColumns("file_id");
     }
 
     public int insertFileMetadata(String assetClass, String dateStr, String fileName) {
