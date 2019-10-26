@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class contains the 2 entry points for this program: main (for AWS Batch), and handleRequest (for AWS Lambda).
@@ -78,8 +79,13 @@ public class App implements RequestHandler<ScheduledEvent, String> {
 
         cmd.append("LAMBDA ");
 
-        List<AssetClass> assetClasses = (List<AssetClass>) event.getDetail()
-                .getOrDefault("assetClasses", Arrays.asList(AssetClass.values()));
+        List<AssetClass> assetClasses;
+
+        if (event.getDetail().get("assetClasses") == null)
+            assetClasses = Arrays.asList(AssetClass.values());
+        else
+            assetClasses = ((List<String>) event.getDetail().get("assetClasses")).stream().map(AssetClass::valueOf)
+                    .collect(Collectors.toList());
 
         for(AssetClass assetClass : assetClasses) {
             cmd.append(assetClass);

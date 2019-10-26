@@ -6,21 +6,19 @@ import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersInvalidException;
 import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
 import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.BeanFactoryAnnotationUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
-import net.nicholaspurdy.gtrslicegrabber.model.AssetClass;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Component
 public class JobProcessManager {
@@ -28,43 +26,32 @@ public class JobProcessManager {
     private static final Logger log = LoggerFactory.getLogger(JobProcessManager.class);
 
     private final ApplicationContext context;
+    private final ThreadPoolTaskExecutor executor;
     private final JobLauncher jobLauncher;
-    private final Integer threadPoolSize;
-
-    private ExecutorService ratesExecutor;
-    private ExecutorService equitiesExecutor;
-    private ExecutorService commoditiesExecutor;
-    private ExecutorService forexExecutor;
-    private ExecutorService creditsExecutor;
 
     @Autowired
-    public JobProcessManager(ApplicationContext context, JobLauncher jobLauncher,
-                             @Value("${slicegrabber.executors.threadPoolSize}") Integer threadPoolSize) {
+    public JobProcessManager(ApplicationContext context, JobRepository jobRepository,
+                             @Value("${slicegrabber.executor.threadPoolSize}") Integer threadPoolSize) {
         this.context = context;
+
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(threadPoolSize);
+        executor.setMaxPoolSize(threadPoolSize);
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(Integer.MAX_VALUE);
+        executor.initialize();
+        this.executor = executor;
+
+        SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+        jobLauncher.setJobRepository(jobRepository);
+        jobLauncher.setTaskExecutor(executor);
+
         this.jobLauncher = jobLauncher;
-        this.threadPoolSize = threadPoolSize;
     }
 
-    public void execute(List<JobParameters> jobParameters, CountDownLatch latch) {
+    public ThreadPoolTaskExecutor execute(List<JobParameters> jobParameters) {
 
         for (JobParameters params : jobParameters) {
-
-            Runnable runnable = generateRunnable(params, latch);
-
-            AssetClass assetClass = AssetClass.valueOf(params.getString("assetClassParam"));
-
-            Executor executor = getExecutor(assetClass);
-
-            executor.execute(runnable);
-        }
-
-        shutdownExecutors();
-
-    }
-
-    private Runnable generateRunnable(JobParameters params, CountDownLatch latch) {
-
-        return () -> {
 
             try {
                 log.info("Building and launching job for: " + params.getString("assetClassParam") + " "
@@ -88,55 +75,10 @@ public class JobProcessManager {
                 log.error("Unspecified exception occurred for job: "
                         + params.getString("assetClassParam") + " " + params.getString("dateStrParam"), e);
             }
-            finally {
-                latch.countDown();
-            }
-
-        };
-
-    }
-
-    private Executor getExecutor(AssetClass assetClass) {
-
-        switch (assetClass) {
-
-            case FOREX:
-                forexExecutor = forexExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : forexExecutor;
-                return forexExecutor;
-
-            case RATES:
-                ratesExecutor = ratesExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : ratesExecutor;
-                return ratesExecutor;
-
-            case CREDITS:
-                creditsExecutor = creditsExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : creditsExecutor;
-                return creditsExecutor;
-
-            case EQUITIES:
-                equitiesExecutor = equitiesExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : equitiesExecutor;
-                return equitiesExecutor;
-
-            default:
-                commoditiesExecutor = commoditiesExecutor == null ? Executors.newFixedThreadPool(threadPoolSize) : commoditiesExecutor;
-                return commoditiesExecutor;
-
         }
 
-    }
-
-    private void shutdownExecutors() {
-
-        if(ratesExecutor != null) ratesExecutor.shutdown();
-
-        if(commoditiesExecutor != null) commoditiesExecutor.shutdown();
-
-        if(creditsExecutor != null) creditsExecutor.shutdown();
-
-        if(forexExecutor != null) forexExecutor.shutdown();
-
-        if(equitiesExecutor != null) equitiesExecutor.shutdown();
+        return executor;
 
     }
-
 
 }

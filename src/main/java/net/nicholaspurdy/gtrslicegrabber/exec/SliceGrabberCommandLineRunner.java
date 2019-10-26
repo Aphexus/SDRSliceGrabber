@@ -6,11 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 
 @Component
 public final class SliceGrabberCommandLineRunner implements CommandLineRunner {
@@ -43,14 +43,12 @@ public final class SliceGrabberCommandLineRunner implements CommandLineRunner {
 
         List<JobParameters> jobParameters = RunnerUtils.generateParams(args);
 
-        CountDownLatch latch = new CountDownLatch(jobParameters.size());
-
-        manager.execute(jobParameters, latch);
-
         log.info("Main thread is beginning wait sequence.");
+
         Instant instant = Instant.now();
 
-        latch.await();
+        ThreadPoolTaskExecutor executor = manager.execute(jobParameters);
+        executor.shutdown();
 
         log.info("Main thread is done waiting. Entire program took " + FormatUtils.getTimeStr(instant, Instant.now()));
 

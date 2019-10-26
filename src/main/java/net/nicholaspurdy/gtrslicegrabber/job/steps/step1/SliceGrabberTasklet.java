@@ -75,7 +75,7 @@ public class SliceGrabberTasklet implements Tasklet {
             throw new UnexpectedJobExecutionException("IOException occurred.", e);
         }
         catch (DataAccessException e) {
-            log.error("Exception occurred while trying to update DB.");
+            log.error("Exception occurred while trying to update DB.", e);
             throw new UnexpectedJobExecutionException("DataAccessException occurred.", e);
         }
 
