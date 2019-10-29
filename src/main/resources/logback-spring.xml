@@ -18,7 +18,7 @@
                     </then>
                     <else>
                         <!-- CloudWatch will add a timestamp for you -->
-                        [%thread] GSG %level %logger - %msg %replace(&#13;%ex){'\n', '&#13;'}%nopex%n
+                        [%thread] %level %logger - %msg %replace(&#13;%ex){'\n', '&#13;'}%nopex%n
                     </else>
                 </if>
             </pattern>
