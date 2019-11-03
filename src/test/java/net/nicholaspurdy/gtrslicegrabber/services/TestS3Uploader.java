@@ -1,9 +1,9 @@
-package net.nicholaspurdy.gtrslicegrabber.services;
+package net.nicholaspurdy.sdrslicegrabber.services;
 
 import com.adobe.testing.s3mock.S3MockApplication;
 
-import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Config;
-import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.S3Uploader;
+import net.nicholaspurdy.sdrslicegrabber.job.steps.step1.S3Config;
+import net.nicholaspurdy.sdrslicegrabber.job.steps.step1.S3Uploader;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 import org.junit.runner.RunWith;

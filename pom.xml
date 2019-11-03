@@ -9,15 +9,15 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>net.nicholaspurdy</groupId>
-    <artifactId>gtrslicegrabber</artifactId>
+    <artifactId>sdrslicegrabber</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>GTRSliceGrabber</name>
+    <name>SDRSliceGrabber</name>
     <description>Spring Batch program to download and process public OTC swaps data from DTCC's GTR</description>
 
     <properties>
         <java.version>1.8</java.version>
         <spring-cloud.version>Greenwich.SR3</spring-cloud.version>
-        <start-class>net.nicholaspurdy.gtrslicegrabber.App</start-class>
+        <start-class>net.nicholaspurdy.sdrslicegrabber.App</start-class>
     </properties>
 
     <dependencies>
@@ -163,7 +163,7 @@
                             <arguments>
                                 <argument>build</argument>
                                 <argument>-t</argument>
-                                <argument>gtrslicegrabber:latest</argument>
+                                <argument>sdrslicegrabber:latest</argument>
                                 <argument>.</argument>
                             </arguments>
                         </configuration>

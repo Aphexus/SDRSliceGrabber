@@ -1,6 +1,6 @@
-package net.nicholaspurdy.gtrslicegrabber.services;
+package net.nicholaspurdy.sdrslicegrabber.services;
 
-import net.nicholaspurdy.gtrslicegrabber.job.steps.step1.FileService;
+import net.nicholaspurdy.sdrslicegrabber.job.steps.step1.FileService;
 import org.junit.AfterClass;
 import org.junit.Test;
 

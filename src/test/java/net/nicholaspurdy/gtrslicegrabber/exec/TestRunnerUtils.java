@@ -1,7 +1,7 @@
-package net.nicholaspurdy.gtrslicegrabber.exec;
+package net.nicholaspurdy.sdrslicegrabber.exec;
 
-//import net.nicholaspurdy.gtrslicegrabber.exec.RunnerUtils;
-import net.nicholaspurdy.gtrslicegrabber.exec.RunnerUtils;
+//import net.nicholaspurdy.sdrslicegrabber.exec.RunnerUtils;
+import net.nicholaspurdy.sdrslicegrabber.exec.RunnerUtils;
 import org.junit.Test;
 import org.springframework.batch.core.JobParameters;
 

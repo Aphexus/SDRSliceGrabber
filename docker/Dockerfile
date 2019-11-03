@@ -6,7 +6,7 @@ ENV chunkSize 1000
 ENV threadPoolSize 4
 ENV maxPoolSize 8
 # copy JAR into image
-COPY ./gtrslicegrabber-0.0.1-SNAPSHOT.jar /gtrslicegrabber.jar
+COPY ./sdrslicegrabber-0.0.1-SNAPSHOT.jar /sdrslicegrabber.jar
 # run java with optimum parameters for batch processing
 ENTRYPOINT [ \
     "/usr/bin/java", \
@@ -15,7 +15,7 @@ ENTRYPOINT [ \
     "-Dslicegrabber.executors.threadPoolSize=${threadPoolSize}", \
     "-Dslicegrabber.datasource.maxPoolSize=${maxPoolSize}", \
     "-jar", \
-    "/gtrslicegrabber.jar", \
+    "/sdrslicegrabber.jar", \
     "BATCH" \
 ]
 # specify asset class and date range via command line args or AWS Batch job parameters
