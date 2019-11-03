@@ -1,4 +1,4 @@
-# GTRSliceGrabber
+# SDRSliceGrabber
 
 ## Background
 
@@ -12,7 +12,7 @@ DTCC operates the Global Trade Repository or GTR which is the largest SDR in the
 
 A DockerFile is supplied to build an image which can run on AWS Batch for the initial historical data load, plus stored procedures to process the CORRECT and CANCEL messages afterwards (to save you from spending more money on EC2 instances for AWS Batch). 
 
-The main class in the codebase (```net.nicholaspurdy.gtrslicegrabber.App```) implements AWS Lambda's RequestHandler interface so the code can then be ran on AWS Lambda on a nightly basis. The CORRECT and CANCEL messages will be processed automatically in this case. No need to manually call a stored procedure from MySQL Workbench. 
+The main class in the codebase (```net.nicholaspurdy.sdrslicegrabber.App```) implements AWS Lambda's RequestHandler interface so the code can then be ran on AWS Lambda on a nightly basis. The CORRECT and CANCEL messages will be processed automatically in this case. No need to manually call a stored procedure from MySQL Workbench. 
 
 CloudFormation templates are a work in process.
 
@@ -22,11 +22,11 @@ The Spring Batch program will download files from DTCC's public reporting websit
 
 The execution path of a single job is provided below (one job = date + asset class):
 
-![GTRSliceGrabber Execution Path](http://nicholaspurdy.net/GTRSliceGrabber_execution_path.png)
+![SDRSliceGrabber Execution Path](http://nicholaspurdy.net/SDRSliceGrabber_execution_path.png)
 
 The tables in MySQL (minus the ones for Spring Batch) are shown here:
 
-![GTRSliceGrabber Tables](http://nicholaspurdy.net/GTRSliceGrabber_tables.png)
+![SDRSliceGrabber Tables](http://nicholaspurdy.net/SDRSliceGrabber_tables.png)
 
 ## Local Setup w/ Docker
 
@@ -37,7 +37,7 @@ Postgres can be set up with one command:
 ```
 docker run -p 5432:5432 --name=slicegrabber_postgres -e POSTGRES_PASSWORD=password -d postgres
 ```
-Once that's done, assuming ```slicegrabber_postgres``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```jdbc:postgresql://172.17.0.2:5432/postgres```. Username is postgres and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/GTRSliceGrabber/tree/master/schema) directory.
+Once that's done, assuming ```slicegrabber_postgres``` is the only docker container running on your machine, you should be able to connect to it using a JDBC URL of ```jdbc:postgresql://172.17.0.2:5432/postgres```. Username is postgres and password is password. From there, you need to create the necessary tables and stored procedures in the [schema](https://github.com/NicholasPurdy/SDRSliceGrabber/tree/master/schema) directory.
 
 #### S3Mock
 
@@ -69,7 +69,7 @@ To execute the jar, command line args are required in the following order:
 
 To execute the docker image, run the following:
 ```
-docker run --rm gtrslicegrabber:latest ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+
+docker run --rm sdrslicegrabber:latest ((CREDITS|COMMODITIES|EQUITIES|FOREX|RATES) (START_DATE) (END_DATE))+
 ```
 
 With the docker image, the ```BATCH``` argument is always used. This is hardcoded in the DockerFile. 
@@ -94,9 +94,9 @@ In both cases however, the connection pool size should always at least be equal 
 
 | Command | Explanation
 |---|---
-| ```java -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively,all at once since the default thread pool size of 8 is used.
-| ```java -Dslicegrabber.executor.threadPoolSize=10 -jar target/gtrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination IDs will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
-| ```docker run --rm -e chunkSize="2000" gtrslicegrabber:latest CREDITS 2019_02_12 2019_02_12``` | This run is using the docker image which only uses the ```BATCH``` argument. The 3 variables discussed earlier are all overridable using docker environment variables as seen here with ```chunkSize```. Just use the last word in the property as oppossed to the whole thing.
+| ```java -jar target/sdrslicegrabber-0.0.1-SNAPSHOT.jar LAMBDA RATES 2019_01_05 2019_01_09``` | This will download and process all cumulative slice files for RATES between January 1st through the 9th inclusively,all at once since the default thread pool size of 8 is used.
+| ```java -Dslicegrabber.executor.threadPoolSize=10 -jar target/sdrslicegrabber-0.0.1-SNAPSHOT.jar BATCH EQUITIES 2019_03_01 2019_03_03 FOREX 2018_07_01 2018_07_01 CREDITS 2017_10_10 2017_11_05``` | This will download 3 days' worth of data for EQUITIES in March 2019, 1 days' worth of data for FOREX in July 2018, and 27 days' worth of data for CREDITS for October-November 2017. Since the ```BATCH``` argument is used, cancellation and correction records will not be processed. They will still be inserted, but the original dissemination IDs will not be marked as cancelled or corrected. The stored procedures PROCESS_EQUITIES, PROCESS_FOREX, and PROCESS_CREDITS will have to be called manually.
+| ```docker run --rm -e chunkSize="2000" sdrslicegrabber:latest CREDITS 2019_02_12 2019_02_12``` | This run is using the docker image which only uses the ```BATCH``` argument. The 3 variables discussed earlier are all overridable using docker environment variables as seen here with ```chunkSize```. Just use the last word in the property as oppossed to the whole thing.
 
-**Note:** MySQL and S3Mock still need to be running in their own docker containers when using the ```gtrslicegrabber``` image to execute the program locally.
+**Note:** MySQL and S3Mock still need to be running in their own docker containers when using the ```sdrslicegrabber``` image to execute the program locally.
 
