@@ -6,6 +6,7 @@ import org.springframework.batch.core.configuration.annotation.DefaultBatchConfi
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.repository.support.JobRepositoryFactoryBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -16,20 +17,25 @@ public class SliceGrabberBatchConfigurer extends DefaultBatchConfigurer {
 
     private static final Logger log = LoggerFactory.getLogger(SliceGrabberBatchConfigurer.class);
 
-    @Autowired
     private DataSource dataSource;
 
     @Autowired
-    private PlatformTransactionManager transactionManager;
+    public SliceGrabberBatchConfigurer(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 
+    @Override
+    public PlatformTransactionManager getTransactionManager() {
+        return new DataSourceTransactionManager(dataSource);
+    }
 
     @Override
     public JobRepository getJobRepository() {
 
         JobRepositoryFactoryBean factory = new JobRepositoryFactoryBean();
         factory.setDataSource(dataSource);
-        factory.setTransactionManager(transactionManager);
-        factory.setIsolationLevelForCreate("ISOLATION_READ_UNCOMMITTED");
+        factory.setTransactionManager(getTransactionManager());
+        factory.setIsolationLevelForCreate("ISOLATION_READ_COMMITTED");
         factory.setValidateTransactionState(false);
 
         try {
