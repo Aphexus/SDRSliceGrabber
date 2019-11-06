@@ -12,7 +12,6 @@ BEGIN
     LOOP
         FETCH data_cur INTO cur_row;
         EXIT WHEN NOT FOUND;
-        raise notice 'Value: %', cur_row.dissemination_id;
         IF cur_row.action = 'CANCEL' THEN
             UPDATE CREDITS SET CANCELED_BY = cur_row.dissemination_id WHERE DISSEMINATION_ID = cur_row.original_dissemination_id;
         ELSE
@@ -41,7 +40,6 @@ BEGIN
     LOOP
         FETCH data_cur INTO cur_row;
         EXIT WHEN NOT FOUND;
-        raise notice 'Value: %', cur_row.dissemination_id;
         IF cur_row.action = 'CANCEL' THEN
             UPDATE FOREX SET CANCELED_BY = cur_row.dissemination_id WHERE DISSEMINATION_ID = cur_row.original_dissemination_id;
         ELSE
@@ -71,7 +69,6 @@ BEGIN
     LOOP
         FETCH data_cur INTO cur_row;
         EXIT WHEN NOT FOUND;
-        raise notice 'Value: %', cur_row.dissemination_id;
         IF cur_row.action = 'CANCEL' THEN
             UPDATE RATES SET CANCELED_BY = cur_row.dissemination_id WHERE DISSEMINATION_ID = cur_row.original_dissemination_id;
         ELSE
@@ -101,7 +98,6 @@ BEGIN
     LOOP
         FETCH data_cur INTO cur_row;
         EXIT WHEN NOT FOUND;
-        raise notice 'Value: %', cur_row.dissemination_id;
         IF cur_row.action = 'CANCEL' THEN
             UPDATE COMMODITIES SET CANCELED_BY = cur_row.dissemination_id WHERE DISSEMINATION_ID = cur_row.original_dissemination_id;
         ELSE
@@ -131,7 +127,6 @@ BEGIN
     LOOP
         FETCH data_cur INTO cur_row;
         EXIT WHEN NOT FOUND;
-        raise notice 'Value: %', cur_row.dissemination_id;
         IF cur_row.action = 'CANCEL' THEN
             UPDATE EQUITIES SET CANCELED_BY = cur_row.dissemination_id WHERE DISSEMINATION_ID = cur_row.original_dissemination_id;
         ELSE
