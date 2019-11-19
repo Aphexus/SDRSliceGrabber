@@ -12,19 +12,19 @@ DTCC operates the Global Trade Repository or GTR which is the largest SDR in the
 
 A DockerFile is supplied to build an image which can run on AWS Batch for the initial historical data load, plus stored procedures to process the CORRECT and CANCEL messages afterwards (to save you from spending more money on EC2 instances for AWS Batch). 
 
-The main class in the codebase (```net.nicholaspurdy.sdrslicegrabber.App```) implements AWS Lambda's RequestHandler interface so the code can then be ran on AWS Lambda on a nightly basis. The CORRECT and CANCEL messages will be processed automatically in this case. No need to manually call a stored procedure from MySQL Workbench. 
+The main class in the codebase (```net.nicholaspurdy.sdrslicegrabber.App```) implements AWS Lambda's RequestHandler interface so the code can then be ran on AWS Lambda on a nightly basis. The CORRECT and CANCEL messages will be processed automatically in this case. No need to manually call a stored procedure. 
 
 CloudFormation templates are a work in process.
 
 ## Architecture
 
-The Spring Batch program will download files from DTCC's public reporting website and save the files themselves to S3 while inserting the individual records into a MySQL database so that CORRECT and CANCEL messages can be processed. Whether or not this post-processing occurs depends on the first command line argument, either LAMBDA or BATCH. 
+The Spring Batch program will download files from DTCC's public reporting website and save the files themselves to S3 while inserting the individual records into a database so that CORRECT and CANCEL messages can be processed. Whether or not this post-processing occurs depends on the first command line argument, either LAMBDA or BATCH. 
 
 The execution path of a single job is provided below (one job = date + asset class):
 
 ![SDRSliceGrabber Execution Path](http://nicholaspurdy.net/SDRSliceGrabber_execution_path.png)
 
-The tables in MySQL (minus the ones for Spring Batch) are shown here:
+The tables in Postgres (minus the ones for Spring Batch) are shown here:
 
 ![SDRSliceGrabber Tables](http://nicholaspurdy.net/SDRSliceGrabber_tables.png)
 
@@ -49,7 +49,7 @@ docker run -p 9090:9090 -p 9191:9191 --name=slicegrabber_s3mock -e initialBucket
 #### Useful Docker Commands
 | Result | Command
 |-------|-------
-| Stop, start, or restart a container | ```docker stop/start/restart slicegrabber_mysql```
+| Stop, start, or restart a container | ```docker stop/start/restart slicegrabber_postgres```
 | Remove a container | ```docker rm slicegrabber_s3mock```
 | Stop all containers | ```killall docker-containerd-shim```
 | Remove all containers | ```docker-compose down```
