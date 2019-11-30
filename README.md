@@ -100,3 +100,9 @@ In both cases however, the connection pool size should always at least be equal 
 
 **Note:** PostgreSQL and S3Mock still need to be running in their own docker containers when using the ```sdrslicegrabber``` image to execute the program locally.
 
+
+## TODO
+* Provide CloudFormation templates/directions on deploying to AWS
+* Handle historical data from Bloomberg SDR
+* Handle missing underlying asset values for equities
+* Provide option for pulling data from ICE Trade Vault + CME SDR
