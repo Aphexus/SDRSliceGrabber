@@ -22,11 +22,11 @@ The Spring Batch program will download files from DTCC's public reporting websit
 
 The execution path of a single job is provided below (one job = date + asset class):
 
-![SDRSliceGrabber Execution Path](http://nicholaspurdy.net/SDRSliceGrabber_execution_path.png)
+![SDRSliceGrabber Execution Path](https://nicholaspurdy.net/stuff/SDRSliceGrabber_execution_path.png)
 
 The tables in Postgres (minus the ones for Spring Batch) are shown here:
 
-![SDRSliceGrabber Tables](http://nicholaspurdy.net/SDRSliceGrabber_tables.png)
+![SDRSliceGrabber Tables](https://nicholaspurdy.net/stuff/SDRSliceGrabber_tables.png)
 
 ## Local Setup w/ Docker
 
